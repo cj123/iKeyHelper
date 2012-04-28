@@ -1,0 +1,18 @@
+grabkbag.exe
+irecovery.exe
+binmay.exe
+ssr.exe
+zlib1.dll
+xpwntool.exe
+hfsplus.exe
+dmg.exe
+libssl32.dll
+baretail.exe # not necessary
+readline5.dll
+libpng12.dll
+curl.exe
+libcurl.dll
+libeay32.dll
+genpass.exe
+injectpois0n.exe
+7za.exe
