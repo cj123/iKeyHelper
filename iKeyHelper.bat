@@ -629,7 +629,7 @@ echo bgcolor 0 0 0 >>..\kbags\all.txt
 echo go fbecho iKeyHelper by cj - icj.me>>..\kbags\all.txt
 echo go fbecho =============================================================>>..\kbags\all.txt
 echo go fbecho - Loading iOS %ipswversion%%MarketingVersiontitle% for %url_parsing_device% ... >>..\kbags\all.txt 
-eecho go fbecho =============================================================>>..\kbags\all.txt
+echo go fbecho =============================================================>>..\kbags\all.txt
 
 if exist *.txt del *.txt /S /Q >NUL
 if exist asr* del asr* /S /Q >NUL
