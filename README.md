@@ -6,16 +6,17 @@ iKeyHelper is scripted in Batch. Its features include: formatting for TheiPhoneW
 
 ## iKeyHelper uses the following:
 
-* XPwn by planetbeing
-* greenpois0n by chronic-dev
-* irecovery by westbaer
-* 7zip by Igor Pavlov
-* SSR by Jonas Reinhardt
-* Binmay by sloaring
-* various parts of Cygwin
+* **XPwn** by planetbeing
+* **greenpois0n** by chronic-dev
+* **irecovery** by westbaer
+* **7zip** by Igor Pavlov
+* **SSR** by Jonas Reinhardt
+* **Binmay** by sloaring
+* various parts of **Cygwin**
 
 If you want to use iKeyHelper, you must first collect these parts - as a general guidance, you can find the required .exe's in tools.txt.
 
 Also, you need libusb for it to work.
 
+--
 This release is the final development that will be done on iKeyHelper. Have fun trying to figure it out! :p
