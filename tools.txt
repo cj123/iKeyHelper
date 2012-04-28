@@ -1,4 +1,4 @@
-grabkbag.exe
+grabkbag.exe # not public, i'd suggest using xpwntool.exe <file.img3/dfu> /dev/null for getting kbags
 irecovery.exe
 binmay.exe
 ssr.exe
