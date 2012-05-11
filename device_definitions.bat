@@ -8,9 +8,7 @@ set bdid=%1
 if "%bdid%"=="" (
 	echo No Boardid Supplied
 	goto eof
-)
-
-if "%bdid%"=="iPod41" (
+) else if "%bdid%"=="iPod41" (
 
 	REM iPod Touch 4
 	set bdid=ipod41
