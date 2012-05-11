@@ -637,32 +637,26 @@ if exist asr* del asr* /S /Q >NUL
 
 
 CALL :log info Getting KBAGs...
-:: delete the files
-
-:: if exist %tempdir%\Restore.txt del %tempdir%\Restore.txt /S /Q >NUL
-:: if exist %tempdir%\Restore1.txt del %tempdir%\Restore1.txt /S /Q >NUL
-:: if exist %tempdir%\Restore2.txt del %tempdir%\Restore2.txt /S /Q >NUL
 
 :kbags
 
 <nul set /p "= - Grabbing KBAGs... "
 
-
-%tools%\grabkbag.exe %LLB% >>..\kbags\all.txt
-%tools%\grabkbag.exe %iBoot% >>..\kbags\all.txt 
-%tools%\grabkbag.exe %devicetree% >>..\kbags\all.txt 
-%tools%\grabkbag.exe %applelogo% >>..\kbags\all.txt 
-%tools%\grabkbag.exe %recoverymode% >>..\kbags\all.txt 
-%tools%\grabkbag.exe %batterylow0% >>..\kbags\all.txt 
-%tools%\grabkbag.exe %batterylow1% >>..\kbags\all.txt 
-%tools%\grabkbag.exe %glyphcharging% >>..\kbags\all.txt 
-%tools%\grabkbag.exe %glyphplugin% >>..\kbags\all.txt 
-%tools%\grabkbag.exe %batterycharging0% >>..\kbags\all.txt 
-%tools%\grabkbag.exe %batterycharging1% >>..\kbags\all.txt 
-%tools%\grabkbag.exe %batteryfull% >>..\kbags\all.txt 
-%tools%\grabkbag.exe %ibss% >>..\kbags\all.txt 
-%tools%\grabkbag.exe %ibec% >>..\kbags\all.txt 
-%tools%\grabkbag.exe %kernel% >>..\kbags\all.txt 
+call :grabkbag %LLB% >>..\kbags\all.txt
+call :grabkbag %iBoot% >>..\kbags\all.txt 
+call :grabkbag %devicetree% >>..\kbags\all.txt 
+call :grabkbag %applelogo% >>..\kbags\all.txt 
+call :grabkbag %recoverymode% >>..\kbags\all.txt 
+call :grabkbag %batterylow0% >>..\kbags\all.txt 
+call :grabkbag %batterylow1% >>..\kbags\all.txt 
+call :grabkbag %glyphcharging% >>..\kbags\all.txt 
+call :grabkbag %glyphplugin% >>..\kbags\all.txt 
+call :grabkbag %batterycharging0% >>..\kbags\all.txt 
+call :grabkbag %batterycharging1% >>..\kbags\all.txt 
+call :grabkbag %batteryfull% >>..\kbags\all.txt 
+call :grabkbag %ibss% >>..\kbags\all.txt 
+call :grabkbag %ibec% >>..\kbags\all.txt 
+call :grabkbag %kernel% >>..\kbags\all.txt 
 
 
 pushd %tempdir%\IPSW\
@@ -674,7 +668,7 @@ if exist %tempdir%\IPSW\%restore% (
 		::echo doing RESTORE
 		set restoreenc=y
 		echo go fbecho - Restore RD:  %restore% >>..\kbags\all.txt
-		%tools%\grabkbag %restore% >>..\kbags\all.txt
+		call :grabkbag %restore% >>..\kbags\all.txt
 	) else (
 		set restoreenc=n
 		echo go echo %restore% >>..\kbags\all.txt
@@ -689,7 +683,7 @@ if "%updateishere%"=="yes" (
 		::echo DOING UPDATE
 		set updateenc=y
 		echo go fbecho - Update RD: %update% >>..\kbags\all.txt
-		%tools%\grabkbag %update% >>..\kbags\all.txt
+		call :grabkbag %update% >>..\kbags\all.txt
 	) else (
 		set updateenc=n
 		echo go echo %update% >>..\kbags\all.txt
@@ -1286,6 +1280,21 @@ goto :EOF
 set bundlename=%~n1.bundle
 set shortipsw=%~n1.ipsw
 goto :eof
+
+
+:grabkbag
+
+:: get kbag avoiding using private tools
+set filename=%~f1
+
+FOR /F "tokens=5 delims=: " %%z IN ('%tools%\xpwntool.exe %filename% %temp%\iKeyHelper\#') DO SET kbag=%%z 2>NUL >NUL
+
+echo go fbecho - %~n1%~x1
+echo go echo %~n1%~x1r
+echo go aes dec %kbag%
+
+goto :EOF
+
 
 
 :log
