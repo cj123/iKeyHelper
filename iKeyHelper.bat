@@ -1290,7 +1290,7 @@ set filename=%~f1
 FOR /F "tokens=5 delims=: " %%z IN ('%tools%\xpwntool.exe %filename% %temp%\iKeyHelper\#') DO SET kbag=%%z 2>NUL >NUL
 
 echo go fbecho - %~n1%~x1
-echo go echo %~n1%~x1r
+echo go echo %~n1%~x1
 echo go aes dec %kbag%
 
 goto :EOF
