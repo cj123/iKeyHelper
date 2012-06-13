@@ -2,42 +2,33 @@
 :: Copyright (C) 2012 Callum Jones
 :: See attached license
 
-:: don't expect this all to work.
+:: if you get all the tools, pop them in a tools.zip and place it at %appdata%\iKeyHelper\tools.zip
+:: copy device_definitions.bat and iKeyHelper.settings.bat to %UserProfile%\iKeyHelper\
+
 
 @ECHO OFF
 
 title iKeyHelper
-
-::------------------------------------------------------------------------------------
 
 SETLOCAL EnableDelayedExpansion
 setlocal
 
 :: set some vars
 :: version
-set version=1.0
-:: uuid (ignore this)
-set uuid=iKeyHelper
+set version=1.1.0
 
 set tools=%appdata%\iKeyHelper\bin
 set logdir=%appdata%\iKeyHelper\logs
+set tempdir=%temp%\iKeyHelper
 
-:: the url to download the files from (probably ignore this too)
-set iKeyHelperURL=[your url here]
+:: ignore this. 
+
+set uuid=iKeyHelper
 
 title iKeyHelper v%version% - (c) 2012 cj 
 cls
 
-
 if not exist %UserProfile%\iKeyHelper mkdir %UserProfile%\iKeyHelper >NUL
-if not exist "%UserProfile%\iKeyHelper\iKeyHelper.settings.bat" (
-	pushd %UserProfile%\iKeyHelper
-	cls
-	echo Downloading default settings file...
-	%tools%\curl -LO -A "iKeyHelper - %uuid% - %version%" --silent %iKeyHelperURL%/settings/iKeyHelper.settings.bat >NUL
-	popd
-)
-
 
 
 :: parse the settings
@@ -59,41 +50,21 @@ if exist decrypted rmdir decrypted /S /Q >NUL
 if exist *.txt del *.txt /S /Q >NUL
 
 cls
-
-echo Extracting Files... 
-
-:: Extract the tools
-
-if not exist %tempdir% mkdir %tempdir% >nul
-if not exist %tools% mkdir %tools% >nul
-
-copy %MYFILES%\7za.exe %tools%\7za.exe >nul
-
 cd %tools%
-
-call 7za.exe x -y -mmt %appdata%\iKeyHelper\tools.zip >nul
+if not exist %appdata%\iKeyHelper\bin\genpass.exe (
+	echo Extracting Files... 
+	:: Extract the tools
+	if not exist %tempdir% mkdir %tempdir% >nul
+	if not exist %tools% mkdir %tools% >nul
+	copy %MYFILES%\7za.exe %tools%\7za.exe >nul
+	call 7za.exe x -y -mmt %appdata%\iKeyHelper\tools.zip >nul
+)
 
 cls
 echo Generating log file...
 :: create error log file
 
-if exist %temp%\timestamp.tmp del %temp%\timestamp.tmp /S /Q >NUL
-if exist %temp%\timestamp1.tmp del %temp%\timestamp1.tmp /S /Q >NUL
-
-echo %date% > %temp%\timestamp.tmp
-
-%tools%\ssr.exe 0 "/" "-" %temp%\timestamp.tmp >NUL
-
-%tools%\binmay.exe -i %temp%\timestamp.tmp -o %temp%\timestamp1.tmp -s 20 20 20 2>NUL
-
-for /f "tokens=* delims= " %%a in (%temp%\timestamp1.tmp) do (
-	set /a w+=1
-	set tme!w!=%%a
-)
-set timestamp=iKeyHelper_%version%_%tme1%.log
-
-if exist %temp%\timestamp.tmp del %temp%\timestamp.tmp /S /Q >NUL
-if exist %temp%\timestamp1.tmp del %temp%\timestamp1.tmp /S /Q >NUL
+set timestamp=iKeyHelper_%version%_%date:~0,2%-%date:~3,2%-%date:~6,4%.log
 
 if "%viewlog%"=="yes" (
 	taskkill /F /IM "baretail.exe" 2>NUL >NUL
@@ -122,7 +93,7 @@ goto top
 :top
 
 
-cd %tempdir%  >NUL
+cd %tempdir%
 
 cls
 
@@ -145,7 +116,7 @@ echo                    $$$$$$\ $$ ^|      \$$$$$$  ^|$$  /   \$$ ^|
 echo                    \______^|\__^|       \______/ \__/     \__^|
 echo.
 echo.
-echo                                          ...or type "x" to download from apple.
+echo                                          ...or type "x" to download from Apple.
 if not exist "\Windows\System32\libusb0.dll" (
 echo ^|______________________________________________________________________________^|
 echo ^|     Error: You do not have libusb. Please take care when installing it.      ^|
@@ -157,15 +128,13 @@ echo ^|     Error: You do not have iTunes. Please install from apple.com/itunes 
 CALL :log error Unable to find iTunes. Please install it.
 ) 
 echo.
-:: echo  If you have restored or this is the first time you have opened iKeyHelper you
-:: echo            need to patch your device. Please type "patchme" to do so.
 echo ________________________________________________________________________________
 
 :: open readme (once)
 
 if not exist %appdata%\iKeyHelper\read.me (
 	CALL :log info Opening ReadMe
-	start http://icj.me/iKeyHelper
+	start http://www.icj.me/iKeyHelper
 	echo read >%appdata%\iKeyHelper\read.me
 )
 
@@ -209,7 +178,9 @@ echo - Which firmware do you wish to download? (e.g. 5.0.1)
 
 set /P dlfw=- Firmware: %=%
 
+:: echo - What is the BuildID of this firmware? (e.g. 9A405)
 
+:: set /P dlid=- BuildID: %=%
 
 if exist %tempdir%\dlipsw rmdir %tempdir%\dlipsw >NUL
 if not exist %tempdir%\dlipsw mkdir %tempdir%\dlipsw >NUL
@@ -278,20 +249,38 @@ call %tools%\curl -LO %downloadlink% --progress-bar
 
 set /p ipswName=<ipsw_name.txt
 call :log info IPSW Name: %ipswName%
-call :log info moving %ipswName% to "%UserProfile%\Desktop\%ipswName%"
-move /y "%ipswName%" "%UserProfile%\Desktop\%ipswName%" >NUL
+if exist "G:\Apple Firmware" (
+	call :log info moving %ipswName% to "%UserProfile%\Desktop\%ipswName%"
+	if not exist "G:\Apple Firmware\%dldevice%" mkdir "G:\Apple Firmware\%dldevice%" >NUL
+	if not exist "G:\Apple Firmware\%dldevice%\Official" mkdir "G:\Apple Firmware\%dldevice%\Official" >NUL
+	move /y "%ipswName%" "G:\Apple Firmware\%dldevice%\Official\%ipswName%" >NUL
 
-if not exist "%UserProfile%\Desktop\%ipswName%" (
-	call :log error IPSW move failed
+	if not exist "G:\Apple Firmware\%dldevice%\Official\%ipswName%" (
+		call :log error IPSW move failed
+	) else (
+		call :log info IPSW move succeeded
+	)
+
+	set tehinfile="G:\Apple Firmware\%dldevice%\Official\%ipswName%"
+	cls
+	echo - IPSW download finished^^! Saved to "G:\Apple Firmware\%dldevice%\Official\%ipswName%"
+
 ) else (
-	call :log info IPSW move succeeded
+	call :log info moving %ipswName% to "%UserProfile%\Desktop\%ipswName%"
+	move /y "%ipswName%" "%UserProfile%\Desktop\%ipswName%" >NUL
+
+	if not exist "%UserProfile%\Desktop\%ipswName%" (
+		call :log error IPSW move failed
+	) else (
+		call :log info IPSW move succeeded
+	)
+
+	set tehinfile="%UserProfile%\Desktop\%ipswName%"
+	cls
+	echo - IPSW download finished^^! Saved to "%UserProfile%\Desktop\%ipswName%"
 )
 
-set tehinfile="%UserProfile%\Desktop\%ipswName%"
 
-
-cls
-echo - IPSW download finished^^! The file has been saved to your desktop.
 echo - Press any key to continue...
 pause >NUL
 
@@ -433,10 +422,9 @@ for /f "tokens=* delims= " %%a in (producttype-1.txt) do set bdid=%%a
 :: device IDs
 
 CALL :log info Getting Device Definitions...
-if exist device_definitions.bat del device_definitions.bat /S /Q >NUL
-%tools%\curl -LO -A "iKeyHelper - %uuid% - %version%" --silent %iKeyHelperURL%/device_definitions.bat >NUL 2>NUL
 
-call device_definitions.bat %bdid%
+
+call %UserProfile%\iKeyHelper\device_definitions.bat %bdid%
 
 <nul set /p "= for %deviceid% "
 
@@ -445,7 +433,6 @@ if exist %tempdir%\boardid rmdir %tempdir%\boardid /S /Q >NUL
 CALL :log info Device recognized as %deviceid%
 
 title iKeyHelper v%version% running %deviceid%, iOS %ipswversion%%MarketingVersiontitle% - (c) %year% cj 
-
 
 
 :: ipsw name check.
@@ -461,6 +448,7 @@ if exist checkme.txt del checkme.txt
 
 
 :: baseband version detection
+:: i'm gonna hate this.
 
 call :log info Detecting Baseband version 
 
@@ -530,7 +518,7 @@ cd IPSW
 
 if exist %tempdir%\IPSW\oldstyle.txt del %tempdir%\IPSW\oldstyle.txt /S /Q >NUL
 
-:: Ramdisk identification
+:: Ramdisk identification, Done properly :)
 
 :: edit out un-needed strings using hex.
 %tools%\binmay.exe -i %tempdir%\IPSW\Restore.plist -o %tempdir%\Restore.txt -s 0A 09 09 2>NUL
@@ -622,9 +610,12 @@ CALL :log info Ramdisks-Update-%update%-Restore-%restore%-Rootfs-%rootfilesystem
 
 %tools%\7za.exe e -o%tempdir%\IPSW -mmt %IPSW% %update% %restore% >> %logdir%\%timestamp%
 
-
+if %boardid%==n94 (
+	goto back-to-me
+)
 
 echo bgcolor 0 0 0 >>..\kbags\all.txt 
+
 
 echo go fbecho iKeyHelper by cj - icj.me>>..\kbags\all.txt
 echo go fbecho =============================================================>>..\kbags\all.txt
@@ -637,6 +628,11 @@ if exist asr* del asr* /S /Q >NUL
 
 
 CALL :log info Getting KBAGs...
+:: delete the files
+
+:: if exist %tempdir%\Restore.txt del %tempdir%\Restore.txt /S /Q >NUL
+:: if exist %tempdir%\Restore1.txt del %tempdir%\Restore1.txt /S /Q >NUL
+:: if exist %tempdir%\Restore2.txt del %tempdir%\Restore2.txt /S /Q >NUL
 
 :kbags
 
@@ -913,8 +909,19 @@ if not "%ERRORLEVEL%"=="0" (
 	%tools%\genpass.exe -p s5l8930x -r decrypted/%update%.dec -f IPSW/%rootfilesystem% >%tempdir%\IPSW\genpass.txt 2>NUL
 )
 
-findstr /C:"vfdecrypt key" %tempdir%\IPSW\genpass.txt >NUL
+CALL :log info Decrypting RootFS TEST
+%tools%\dmg.exe extract %tempdir%\IPSW\%rootfilesystem% %tempdir%\decrypted\%rootfilesystem%.dec -k %rtkey% 2>decryptedcheck.txt
 
+findstr /C:"readUDIFResourceFile - signature incorrect" decryptedcheck.txt >NUL
+
+if "%errorlevel%"=="0" (
+	call :log error Genpass and vfdecrypt key failed-tryingupdate
+	%tools%\genpass.exe -p s5l8930x -r decrypted/%update%.dec -f IPSW/%rootfilesystem% >%tempdir%\IPSW\genpass.txt 2>NUL
+)
+
+
+
+findstr /C:"vfdecrypt key" %tempdir%\IPSW\genpass.txt >NUL
 if "%errorlevel%"=="0" (
 
 	for %%a in ("%tempdir%\IPSW\genpass.txt") do (
@@ -965,7 +972,7 @@ echo . >NUL
 
 pushd %temp%\iKeyHelper
 if exist downloadurl*.txt del downloadurl*.txt /S /Q >NUL
-if exist real-ikeyhelper-link-parser del real-ikeyhelper-link-parser /S /Q >NUL
+
 
 %tools%\curl -A "iKeyHelper - %uuid% - %version%" --silent http://api.ios.icj.me/v2/%boardid%ap/%BuildNumber%/url >url.txt
 
@@ -974,8 +981,7 @@ set /p downloadurl=<url.txt
 
 popd
 
-echo iKeyHelper %version% by Callum Jones ^(c^) 2012>iphonewikikeys.txt
-
+echo iKeyHelper %version% by cj>iphonewikikeys.txt
 echo %ipswname% Keys and IV's Grabbed by %username% on %date%>>iphonewikikeys.txt
 
 echo.>>iphonewikikeys.txt
@@ -985,7 +991,12 @@ echo.>>iphonewikikeys.txt
 echo {{keys>>iphonewikikeys.txt
 
 if not "%marketingversion%"=="" (
-	echo  ^| version             = %MarketingVersion% ^(%ipswversion%^)>>iphonewikikeys.txt
+	if not "%downloadurl%"=="" (
+		echo  ^| version             = %ipswversion% ^(%MarketingVersion%^)>>iphonewikikeys.txt
+	) else (
+		echo  ^| version             = %ipswversion% ^(%MarketingVersion%^) b[number]>>iphonewikikeys.txt
+	)
+	
 ) else (
 	if not "%downloadurl%"=="" (
 		echo  ^| version             = %ipswversion%>>iphonewikikeys.txt
@@ -1089,7 +1100,7 @@ if not exist "%bundledir%\%url_parsing_device%" mkdir "%bundledir%\%url_parsing_
 copy iphonewikikeys.txt "%bundledir%\%url_parsing_device%\%ipswname%.txt" >nul
 echo - Saved File to iKeyHelper bundle directory
 
-
+if exist "%bundledir%\iPod Touch 4th Gen" move /y "%bundledir%\iPod Touch 4th Gen" "%bundledir%\iPod Touch 4" >NUL
 
 
 start "" notepad "%bundledir%\%url_parsing_device%\%ipswname%.txt"
@@ -1102,18 +1113,28 @@ start http://theiphonewiki.com/wiki/index.php?title=%BuildTrain%_%BuildNumber%_(
 
 cd %tempdir%
 
-<nul set /p "= - Decrypting RootFS... "
-CALL :log info Decrypting RootFS
-%tools%\dmg.exe extract %tempdir%\IPSW\%rootfilesystem% %tempdir%\decrypted\%rootfilesystem%.dec -k %rtkey% >NUL
+if not "%rtkey%"=="" (
 
-echo Done^^!
+	<nul set /p "= - Decrypting Root Filesystem... "
 
+	if exist "%tempdir%\decrypted\%rootfilesystem%.dec" del "%tempdir%\decrypted\%rootfilesystem%.dec" /S /Q >NUL
 
+	%tools%\dmg.exe extract %tempdir%\IPSW\%rootfilesystem% %tempdir%\decrypted\%rootfilesystem%.dec -k %rtkey% >NUL
+
+	echo Done^^!
+
+) else (
+	echo - Unable to decrypt Root Filesystem :(
+)
 
 pushd %tempdir%\decrypted 
 
-<nul set /p "= - Decrypting other files... "
+:: you idiot. why did you do this you numpty?!
+:: 'derp why it no worky'
+:: if exist %restore%.dec del %restore%.dec /S /Q >NUL
+:: if exist %update%.dec del %update%.dec /S /Q >NUL
 
+<nul set /p "= - Decrypting other files... "
 
 CALL :log info Decrypting %applelogo%
 %tools%\xpwntool.exe %tempdir%\IPSW\%applelogo% %applelogo%.dec -iv %iv6% -k %key6% >> %logdir%\%timestamp% 
@@ -1171,15 +1192,16 @@ if exist end.txt del *.txt /S /Q >NUL
 
 <nul set /p "= - Extracting files from dmg's... "
 CALL :log info Extracting files from the dmg's
-%tools%\hfsplus %tempdir%\decrypted\%rootfilesystem%.dec extract /etc/fstab %tempdir%\decrypted\fstab >NUL
-CALL :log info - fstab
+if not "%rtkey%"=="" (
+	%tools%\hfsplus %tempdir%\decrypted\%rootfilesystem%.dec extract /etc/fstab %tempdir%\decrypted\fstab >NUL
+	CALL :log info - fstab
+	%tools%\hfsplus %tempdir%\decrypted\%rootfilesystem%.dec extract /System/Library/Lockdown/Services.plist %tempdir%\decrypted\Services.plist >NUL
+	CALL :log info - Services.plist
+	%tools%\hfsplus %tempdir%\decrypted\%rootfilesystem%.dec extract /usr/libexec/lockdownd %tempdir%\decrypted\lockdownd
+	CALL :log info - lockdownd
+)
 %tools%\hfsplus %tempdir%\decrypted\%restore%.dec extract /usr/sbin/asr %tempdir%\decrypted\asr >NUL
 CALL :log info - asr
-%tools%\hfsplus %tempdir%\decrypted\%rootfilesystem%.dec extract /System/Library/Lockdown/Services.plist %tempdir%\decrypted\Services.plist >NUL
-CALL :log info - Services.plist
-%tools%\hfsplus %tempdir%\decrypted\%rootfilesystem%.dec extract /usr/libexec/lockdownd %tempdir%\decrypted\lockdownd
-CALL :log info - lockdownd
-
 echo Done^^!
 
 
@@ -1261,33 +1283,17 @@ del %tempdir%\*.txt /S /Q >NUL
 
 exit
 
-
-
-:dequote
-set _dequoteVar=%1
-call set _dequoteString=%%!_dequoteVar!%%
-if [!_dequoteString:~0^,1!]==[^"] (
-if [!_dequoteString:~-1!]==[^"] (
-set _dequoteString=!_dequoteString:~1,-1!
-) else (GOTO :EOF)
-) else (GOTO :EOF)
-set !_dequoteVar!=!_dequoteString!
-set _dequoteVar=
-set _dequoteString=
-goto :EOF
-
-:sfn
-set bundlename=%~n1.bundle
-set shortipsw=%~n1.ipsw
-goto :eof
+::---------------------------------------------------------------------------
+:: down here are the large spammy bits that aren't changed often but take up
+:: lots of space.
+::---------------------------------------------------------------------------
 
 
 :grabkbag
 
-:: get kbag avoiding using private tools
 set filename=%~f1
 
-FOR /F "tokens=5 delims=: " %%z IN ('%tools%\xpwntool.exe %filename% %temp%\iKeyHelper\#') DO SET kbag=%%z 2>NUL >NUL
+for /F "tokens=5 delims=: " %%z in ('%tools%\xpwntool.exe %filename% %temp%\iKeyHelper\#') do set kbag=%%z 2>NUL >NUL
 
 echo go fbecho - %~n1%~x1
 echo go echo %~n1%~x1
@@ -1295,6 +1301,24 @@ echo go aes dec %kbag%
 
 goto :EOF
 
+
+:DeQuote
+SET _DeQuoteVar=%1
+CALL SET _DeQuoteString=%%!_DeQuoteVar!%%
+IF [!_DeQuoteString:~0^,1!]==[^"] (
+IF [!_DeQuoteString:~-1!]==[^"] (
+SET _DeQuoteString=!_DeQuoteString:~1,-1!
+) ELSE (GOTO :EOF)
+) ELSE (GOTO :EOF)
+SET !_DeQuoteVar!=!_DeQuoteString!
+SET _DeQuoteVar=
+SET _DeQuoteString=
+GOTO :EOF
+
+:sfn
+set bundlename=%~n1.bundle
+set shortipsw=%~n1.ipsw
+goto :eof
 
 
 :log
@@ -1373,6 +1397,7 @@ if "%data%"=="ECHOisoff." (
 
 echo %data%
 )
+if exist %temp%\plistparse\ rmdir %temp%\plistparse /S /Q >NUL
 endlocal
 goto eof
 
@@ -1387,9 +1412,9 @@ goto eof
 
 :: Syntax: Count #_of_lines FileName Output_File
 
-if %2.==. echo Missing source file & goto :EOF
-if not exist %~f2 echo File %~f2 not found & goto :EOF
-if %3.==. echo Missing output destination & goto :EOF
+if %2.==. echo Missing source file & GoTo :EOF
+if not exist %~f2 echo File %~f2 not found & Goto :EOF
+if %3.==. echo Missing output destination & GoTo :EOF
 
 if exist %~f3 Del %~f3
 for /F "tokens=3 delims=:" %%A in ('Find /V /C "#~#" %~f2') do set RN=%%A
