@@ -54,20 +54,17 @@ if "%bdid%"=="" (
 	set url_parsing_device=iPhone 4 ^(CDMA^)
 
 ) else if "%bdid%"=="iPhone21" (
-
+	
 	REM iPhone 3G[S]
-	echo.
-	echo - Unsupported device detected! 
-	echo - Press any key to exit...
+	echo - This firmware requires you to be using an iPhone 3G[S] to get keys.
+	echo - Press any key to continue when you are using an iPhone 3G[S].
 	pause >NUL
-	exit
-	REM taskkill /F /IM "kh.exe"
 	set bdid=iphone21
 	set deviceid=iPhone 3G[S]
 	set boardid=n88
 	set deviceidw=iPhone_3GS
 	set url_parsing_device=iPhone 3G[S]
-
+	
 ) else if "%bdid%"=="iPod31" (
 
 	REM iPod Touch 3
