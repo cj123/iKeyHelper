@@ -16,7 +16,4 @@ iKeyHelper is scripted in Batch. Its features include: formatting for TheiPhoneW
 
 If you want to use iKeyHelper, you must first collect these parts - as a general guidance, you can find the required .exe's in tools.txt.
 
-Also, you need libusb for it to work.
-
---
-This release is the final development that will be done on iKeyHelper. Have fun trying to figure it out! :p
+Also, you need libusb 9and device filters installed for each mode) for it to work.
