@@ -1,22 +1,10 @@
-REM  QBFC Project Options Begin
-REM  HasVersionInfo: No
-REM  Companyname: cj
-REM  Productname: iKeyHelper
-REM  Filedescription: iOS KeyGrabber for windows
-REM  Copyrights: (C) cj 2012
-REM  Trademarks: 
-REM  Originalname: 
-REM  Comments: 
-REM  Productversion: 00.00.00.00
-REM  Fileversion: 00.00.00.00
-REM  Internalname: iKeyHelper
-REM  Appicon: icon.ico
-REM  Embeddedfile: bin\7za.exe
-REM  QBFC Project Options End
+ 	
+:: iKeyHelper v1.0	  	
+:: Copyright (C) 2012 Callum Jones
+:: See attached license
 
-::*******************************************************************************::
-::                                 iKeyHelper by cj                              ::
-::*******************************************************************************::
+:: if you get all the tools, pop them in a tools.zip and place it at %appdata%\iKeyHelper\tools.zip
+:: copy device_definitions.bat and iKeyHelper.settings.bat to %UserProfile%\iKeyHelper\
 
 @ECHO OFF
 
@@ -44,7 +32,7 @@ if not exist %UserProfile%\iKeyHelper mkdir %UserProfile%\iKeyHelper >NUL
 
 
 :: parse the settings
-call iKeyHelper.settings.bat this-is-meant-to-be-run
+call %UserProfile%\iKeyHelper\iKeyHelper.settings.bat this-is-meant-to-be-run
 
 if not exist %tempdir% mkdir %tempdir% >NUL
 
@@ -427,9 +415,8 @@ for /f "tokens=* delims= " %%a in (producttype-1.txt) do set bdid=%%a
 :: device IDs
 
 CALL :log info Getting Device Definitions...
-if exist device_definitions.bat del device_definitions.bat /S /Q >NUL
 
-call device_definitions.bat %bdid%
+call %UserProfile%\iKeyHelper\device_definitions.bat %bdid%
 
 <nul set /p "= for %deviceid% "
 
