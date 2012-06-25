@@ -1,5 +1,5 @@
  	
-:: iKeyHelper v1.0	  	
+:: iKeyHelper v1.3	  	
 :: Copyright (C) 2012 Callum Jones
 :: See attached license
 
@@ -19,17 +19,22 @@ setlocal
 :: version
 set version=1.2.0
 
+:beginning
 
 set tools=%appdata%\iKeyHelper\bin
 set logdir=%appdata%\iKeyHelper\logs
 set tempdir=%temp%\iKeyHelper
 
-title iKeyHelper v%version% - (c) 2012 cj 
+:: still ignore this ;)
+set uuid=iKeyHelper~git
 
+title iKeyHelper v%version% - (c) 2012 cj 
 cls
 
 if not exist %UserProfile%\iKeyHelper mkdir %UserProfile%\iKeyHelper >NUL
-
+if not exist "%UserProfile%\iKeyHelper\iKeyHelper.settings.bat" (
+	echo Not found settings file...
+)
 
 :: parse the settings
 call %UserProfile%\iKeyHelper\iKeyHelper.settings.bat this-is-meant-to-be-run
@@ -60,11 +65,12 @@ if not exist %appdata%\iKeyHelper\bin\genpass.exe (
 	call 7za.exe x -y -mmt %appdata%\iKeyHelper\tools.zip >nul
 )
 
+
 cls
 echo Generating log file...
 :: create error log file
 
-set timestamp=iKeyHelper_%version%_%date:~0,2%-%date:~3,2%-%date:~6,4%.log
+set timestamp=iKeyHelper_%version%.log
 
 if "%viewlog%"=="yes" (
 	taskkill /F /IM "baretail.exe" 2>NUL >NUL
@@ -241,10 +247,12 @@ if errorlevel 1 (
 %tools%\curl -A "iKeyHelper - %uuid% - %version%" --silent %downloadlink%/filename>ipsw_name.txt
 
 %tools%\curl -A "iKeyHelper - %uuid% - %version%" --silent %downloadlink%/url>url.txt
+%tools%\curl -A "iKeyHelper - %uuid% - %version%" --silent %downloadlink%/filesize>filesize.txt
 set /p ipswName=<ipsw_name.txt
 set /p downloadlink=<url.txt
+set /p filesize=<filesize.txt
 
-echo - Downloading %ipswName%...
+echo - Downloading %ipswName%... [%filesize%MB]
 CALL :log info downloading IPSW from %downloadlink%
 
 
@@ -328,7 +336,7 @@ if not "%ERRORLEVEL%"=="0" (
 	echo -^^!- Error^^! This is not an IPSW. Try again, but use some brain cells next time?
 	echo -^^!- Press any key to go back to the menu...
 	pause >NUL
-	goto top
+	goto beginning
 )
 
 :: get the short file name of the IPSW.
@@ -420,11 +428,14 @@ call %UserProfile%\iKeyHelper\device_definitions.bat %bdid%
 
 <nul set /p "= for %deviceid% "
 
+
+
+
 if exist %tempdir%\boardid rmdir %tempdir%\boardid /S /Q >NUL
 
 CALL :log info Device recognized as %deviceid%
 
-title iKeyHelper v%version% running %deviceid%, iOS %ipswversion%%MarketingVersiontitle% (%BuildNumber%) - (c) 2012 cj 
+title iKeyHelper v%version% running %deviceid%, iOS %ipswversion%%MarketingVersiontitle% (%BuildNumber%) - (c) %year% cj 
 
 :: fuck manifest reading. lets do this cj style.
 :: rofl iH8sn0w's one 'suggestion' down the drain. baahahahahahaha
@@ -476,11 +487,47 @@ if %boardid%==n90 (
 )
 
 
-if %boardid%==n90 ( <nul set /p "= - Baseband %baseband%" )
-if %boardid%==n92 ( <nul set /p "= - Baseband %baseband%" )
-if %boardid%==n94 ( <nul set /p "= - Baseband %baseband%" )
+if "%boardid%"=="n90" ( 
+	echo - Baseband %baseband%
+) else if "%boardid%"=="n92" ( 
+	echo - Baseband %baseband%
+) else (
+	echo.
+)
+if "%requiresdevice%"=="yes" (
+	echo - This firmware requires you to be using an %deviceid% to get keys.
+	<nul set /p "= - Please plug in your %deviceid% in NORMAL mode... "
+	goto devicecheck
+) else (
+	echo - Use any A4 device to get keys for this firmware.
+	goto nodevicecheck
+)
 
-echo.
+:devicecheck
+
+set detectedDevice=
+for /F "tokens=2 delims=: " %%t in ('%tools%\ideviceinfo.exe ^| findstr "HardwareModel"') do set detectedDevice=%%t
+set detectedID=
+for /F "tokens=2 delims=: " %%v in ('%tools%\ideviceinfo.exe ^| findstr "ProductType"') do set detectedID=%%v
+%tools%\ideviceinfo.exe | find /I /N "No device found">NUL
+	
+if "%ERRORLEVEL%"=="1" (
+	echo Found device^^!
+	CALL :log info Device found in NORMAL mode.
+) else (
+	ping localhost -n 6 >nul
+	CALL :log error No NORMAL device found. Rechecking...
+	goto devicecheck
+)
+call :log info Device is %detectedDevice%
+if not "%detectedDevice%"=="%boardid%ap" (
+	echo -^^!- Error: You have not plugged in a %deviceid%^^! This is an %detectedID%.
+	echo - Press any key to return to main screen...
+	pause >NUL
+	goto beginning
+)
+
+:nodevicecheck
 
 popd 
 
@@ -502,7 +549,6 @@ set iBSS=iBSS.%boardid%ap.RELEASE.dfu
 set iBEC=iBEC.%boardid%ap.RELEASE.dfu
 set kernel=kernelcache.RELEASE.%boardid%
 
-mkdir kbags
 cd IPSW
 
 <nul set /p "= - Getting Ramdisk Information... "
@@ -598,15 +644,15 @@ CALL :log info Ramdisks-Update-%update%-Restore-%restore%-Rootfs-%rootfilesystem
 %tools%\7za.exe e -o%tempdir%\IPSW -mmt %IPSW% %update% %restore% >> %logdir%\%timestamp%
 
 
-echo bgcolor 0 0 0 >>..\kbags\all.txt 
+echo bgcolor 0 0 0 >>%tempdir%\all.txt 
 :: speed it up for me
 
 
-echo go fbecho iKeyHelper v%version% by cj ^<cj@icj.me^> >>..\kbags\all.txt
-echo go fbecho ===================================>>..\kbags\all.txt
-echo go fbecho - Loading iOS %ipswversion%%MarketingVersiontitle% (%BuildNumber%) >>..\kbags\all.txt 
-echo go fbecho ^> for %ProductType% (%url_parsing_device%) >>..\kbags\all.txt 
-echo go fbecho ===================================>>..\kbags\all.txt
+echo go fbecho iKeyHelper v%version% by Callum Jones ^<cj@icj.me^> >>%tempdir%\all.txt
+echo go fbecho ========================================>>%tempdir%\all.txt
+echo go fbecho - Loading iOS %ipswversion%%MarketingVersiontitle% (%BuildNumber%) >>%tempdir%\all.txt 
+echo go fbecho ^> for %ProductType% (%url_parsing_device%) >>%tempdir%\all.txt 
+echo go fbecho ========================================>>%tempdir%\all.txt
 
 if exist *.txt del *.txt /S /Q >NUL
 if exist asr* del asr* /S /Q >NUL
@@ -622,21 +668,21 @@ CALL :log info Getting KBAGs...
 
 <nul set /p "= - Grabbing KBAGs... "
 
-call :grabkbag %LLB% >>..\kbags\all.txt
-call :grabkbag %iBoot% >>..\kbags\all.txt 
-call :grabkbag %devicetree% >>..\kbags\all.txt 
-call :grabkbag %applelogo% >>..\kbags\all.txt 
-call :grabkbag %recoverymode% >>..\kbags\all.txt 
-call :grabkbag %batterylow0% >>..\kbags\all.txt 
-call :grabkbag %batterylow1% >>..\kbags\all.txt 
-call :grabkbag %glyphcharging% >>..\kbags\all.txt 
-call :grabkbag %glyphplugin% >>..\kbags\all.txt 
-call :grabkbag %batterycharging0% >>..\kbags\all.txt 
-call :grabkbag %batterycharging1% >>..\kbags\all.txt 
-call :grabkbag %batteryfull% >>..\kbags\all.txt 
-call :grabkbag %ibss% >>..\kbags\all.txt 
-call :grabkbag %ibec% >>..\kbags\all.txt 
-call :grabkbag %kernel% >>..\kbags\all.txt 
+call :grabkbag %LLB% >>%tempdir%\all.txt
+call :grabkbag %iBoot% >>%tempdir%\all.txt 
+call :grabkbag %devicetree% >>%tempdir%\all.txt 
+call :grabkbag %applelogo% >>%tempdir%\all.txt 
+call :grabkbag %recoverymode% >>%tempdir%\all.txt 
+call :grabkbag %batterylow0% >>%tempdir%\all.txt 
+call :grabkbag %batterylow1% >>%tempdir%\all.txt 
+call :grabkbag %glyphcharging% >>%tempdir%\all.txt 
+call :grabkbag %glyphplugin% >>%tempdir%\all.txt 
+call :grabkbag %batterycharging0% >>%tempdir%\all.txt 
+call :grabkbag %batterycharging1% >>%tempdir%\all.txt 
+call :grabkbag %batteryfull% >>%tempdir%\all.txt 
+call :grabkbag %ibss% >>%tempdir%\all.txt 
+call :grabkbag %ibec% >>%tempdir%\all.txt 
+call :grabkbag %kernel% >>%tempdir%\all.txt 
 
 
 pushd %tempdir%\IPSW\
@@ -647,11 +693,11 @@ if exist %tempdir%\IPSW\%restore% (
 	if not exist asr-test2 ( 
 		::echo doing RESTORE
 		set restoreenc=y
-		call :grabkbag %restore% >>..\kbags\all.txt
+		call :grabkbag %restore% >>%tempdir%\all.txt
 	) else (
 		set restoreenc=n
-		echo go echo %restore% >>..\kbags\all.txt
-		echo go echo *Not_Encrypted >>..\kbags\all.txt
+		echo go echo %restore% >>%tempdir%\all.txt
+		echo go echo *Not_Encrypted >>%tempdir%\all.txt
 	)
 )
 
@@ -661,24 +707,23 @@ if "%updateishere%"=="yes" (
 	if not exist asr-test1 (
 		::echo DOING UPDATE
 		set updateenc=y
-		call :grabkbag %update% >>..\kbags\all.txt
+		call :grabkbag %update% >>%tempdir%\all.txt
 	) else (
 		set updateenc=n
-		echo go echo %update% >>..\kbags\all.txt
-		echo go echo *Not_Encrypted >>..\kbags\all.txt
+		echo go echo %update% >>%tempdir%\all.txt
+		echo go echo *Not_Encrypted >>%tempdir%\all.txt
 	)
 )
 
 popd
 
-echo go fbecho ===================================>>..\kbags\all.txt
-echo go fbecho - Done>>..\kbags\all.txt 
-echo go fbecho - Rebooting...>>..\kbags\all.txt
-echo go fbecho ===================================>>..\kbags\all.txt
+echo go fbecho ===================================>>%tempdir%\all.txt
+echo go fbecho - Done>>%tempdir%\all.txt 
+echo go fbecho - Rebooting...>>%tempdir%\all.txt
+echo go fbecho ===================================>>%tempdir%\all.txt
 
 echo Done^^!
-echo /exit >> ..\kbags\all.txt
-copy ..\kbags\all.txt ..\all.txt >nul
+echo /exit >>%tempdir%\all.txt
 
 :: close open iTunes windows (if they exist)
 tasklist /FI "IMAGENAME eq iTunes.exe" 2>NUL | find /I /N "iTunes.exe">NUL
@@ -936,7 +981,6 @@ pushd %tempdir%\ipad-bb
 	if "%bdid%"=="ipad11" (
 		set /p baseband=< %tempdir%\bb.txt
 	) 
-	:: 3G[S] baseband
 	if "%bdid%"=="iphone21" (
 		for /f "tokens=* delims= " %%a in (%tempdir%\bb.txt) do (
 			set /a v+=1
@@ -1085,6 +1129,9 @@ if not exist "%bundledir%\%url_parsing_device%" mkdir "%bundledir%\%url_parsing_
 
 copy iphonewikikeys.txt "%bundledir%\%url_parsing_device%\%ipswname%.txt" >nul
 echo - Saved File to iKeyHelper bundle directory
+
+if exist "%bundledir%\iPod Touch 4th Gen" move /y "%bundledir%\iPod Touch 4th Gen" "%bundledir%\iPod Touch 4" >NUL
+
 
 start "" notepad "%bundledir%\%url_parsing_device%\%ipswname%.txt"
 

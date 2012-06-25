@@ -16,6 +16,7 @@ if "%bdid%"=="" (
 	set boardid=n81
 	set deviceidw=iPod_touch_4G
 	set url_parsing_device=iPod Touch 4
+	set requiresdevice=no
 
 ) else if "%bdid%"=="iPhone31" (
 
@@ -25,6 +26,7 @@ if "%bdid%"=="" (
 	set boardid=n90
 	set deviceidw=iPhone_4
 	set url_parsing_device=iPhone 4 ^(GSM^)
+	set requiresdevice=no
 
 ) else if "%bdid%"=="iPad11" (
 
@@ -34,6 +36,7 @@ if "%bdid%"=="" (
 	set boardid=k48
 	set deviceidw=iPad
 	set url_parsing_device=iPad 1
+	set requiresdevice=no
 
 ) else if "%bdid%"=="AppleTV21" (
 
@@ -43,6 +46,7 @@ if "%bdid%"=="" (
 	set boardid=k66
 	set deviceidw=Apple_TV_2G
 	set url_parsing_device=Apple TV 2G
+	set requiresdevice=no
 
 ) else if "%bdid%"=="iPhone33" (
 
@@ -52,33 +56,27 @@ if "%bdid%"=="" (
 	set boardid=n92
 	set deviceidw=iPhone_4_CDMA
 	set url_parsing_device=iPhone 4 ^(CDMA^)
+	set requiresdevice=no
 
 ) else if "%bdid%"=="iPhone21" (
 	
 	REM iPhone 3G[S]
-	echo - This firmware requires you to be using an iPhone 3G[S] to get keys.
-	echo - Press any key to continue when you are using an iPhone 3G[S].
-	pause >NUL
 	set bdid=iphone21
 	set deviceid=iPhone 3G[S]
 	set boardid=n88
 	set deviceidw=iPhone_3GS
 	set url_parsing_device=iPhone 3G[S]
+	set requiresdevice=yes
 	
 ) else if "%bdid%"=="iPod31" (
 
 	REM iPod Touch 3
-	echo.
-	echo - Unsupported device detected! 
-	echo - Press any key to exit...
-	pause >NUL
-	exit
-	REM taskkill /F /IM "kh.exe"
 	set bdid=ipod31
 	set deviceid=iPod Touch 3
 	set boardid=n18
 	set deviceidw=iPod_Touch_3G
 	set url_parsing_device=iPod Touch 3
+	set requiresdevice=yes
 
 ) else if "%bdid%"=="iPhone41" (
 
@@ -88,7 +86,6 @@ if "%bdid%"=="" (
 	echo - Press any key to exit...
 	pause >NUL
 	exit
-	REM taskkill /F /IM "kh.exe"
 	set bdid=iphone41
 	set deviceid=iPhone 4[S]
 	set boardid=n94

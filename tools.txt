@@ -1,17 +1,25 @@
-irecovery.exe
-binmay.exe
-ssr.exe
-zlib1.dll
-xpwntool.exe
-hfsplus.exe
-dmg.exe
-libssl32.dll
+# Tools required for iKeyHelper to run.
+# You should find with a bit of googling. None of this is private software.
+
+7za.exe
 baretail.exe # not necessary
-readline5.dll
-libpng12.dll
+binmay.exe
 curl.exe
+dmg.exe
+genpass.exe
+hfsplus.exe
+iconv.dll
+ideviceinfo.exe
+injectpois0n.exe
+intl.dll
+irecovery.exe
 libcurl.dll
 libeay32.dll
-genpass.exe
-injectpois0n.exe
-7za.exe
+libglib-2.0-0.dll
+libpng12.dll
+libssl32.dll
+libxml2.dll
+readline5.dll
+ssr.exe
+xpwntool.exe
+zlib1.dll
