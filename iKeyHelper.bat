@@ -506,10 +506,12 @@ if "%requiresdevice%"=="yes" (
 
 set detectedDevice=
 for /F "tokens=2 delims=: " %%t in ('%tools%\ideviceinfo.exe ^| findstr "HardwareModel"') do set detectedDevice=%%t
+set detectedDevice=%detectedDevice: =%
+
 set detectedID=
 for /F "tokens=2 delims=: " %%v in ('%tools%\ideviceinfo.exe ^| findstr "ProductType"') do set detectedID=%%v
-
 %tools%\ideviceinfo.exe | find /I /N "No device found">NUL
+	
 if "%ERRORLEVEL%"=="1" (
 	echo Found device^^!
 	CALL :log info Device found in NORMAL mode.
@@ -518,8 +520,9 @@ if "%ERRORLEVEL%"=="1" (
 	CALL :log error No NORMAL device found. Rechecking...
 	goto devicecheck
 )
-call :log info Device is %detectedDevice%
-if not "%detectedDevice%"=="%boardid%ap" (
+call :log info if not "%detectedDevice%"=="%boardid%ap"
+call :log info Device is %detectedDevice%.
+if /I not "%detectedDevice%"=="%boardid%ap" (
 	echo -^^!- Error: You have not plugged in a %deviceid%^^! This is an %detectedID%.
 	echo - Press any key to return to main screen...
 	pause >NUL
