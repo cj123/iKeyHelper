@@ -1,4 +1,3 @@
- 	
 :: iKeyHelper v1.3	  	
 :: Copyright (C) 2012 Callum Jones
 :: See attached license
@@ -17,7 +16,7 @@ setlocal
 
 :: set some vars
 :: version
-set version=1.2.0
+set version=1.3.0
 
 :beginning
 
@@ -509,8 +508,8 @@ set detectedDevice=
 for /F "tokens=2 delims=: " %%t in ('%tools%\ideviceinfo.exe ^| findstr "HardwareModel"') do set detectedDevice=%%t
 set detectedID=
 for /F "tokens=2 delims=: " %%v in ('%tools%\ideviceinfo.exe ^| findstr "ProductType"') do set detectedID=%%v
+
 %tools%\ideviceinfo.exe | find /I /N "No device found">NUL
-	
 if "%ERRORLEVEL%"=="1" (
 	echo Found device^^!
 	CALL :log info Device found in NORMAL mode.
