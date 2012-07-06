@@ -1219,8 +1219,8 @@ echo Done^^!
 
 popd
 
-<nul set /p "= - Extracting files from dmg's... "
-CALL :log info Extracting files from the dmg's
+<nul set /p "= - Extracting files from DMGs... "
+CALL :log info Extracting files from the DMGs
 if not "%rtkey%"=="" (
 	%tools%\hfsplus %tempdir%\decrypted\%rootfilesystem%.dec extract /etc/fstab %tempdir%\decrypted\fstab >NUL
 	CALL :log info - fstab
