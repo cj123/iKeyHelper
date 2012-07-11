@@ -233,7 +233,7 @@ goto downloadipsw
 
 %tools%\curl -A "iKeyHelper - %uuid% - %version%" --silent %downloadlink%/url -I>response.txt
 
-findstr "202 Accepted" response.txt > nul
+findstr "200 OK" response.txt > nul
 
 if errorlevel 1 (
 	echo - Error: Link not found.
@@ -427,14 +427,11 @@ call %UserProfile%\iKeyHelper\device_definitions.bat %bdid%
 
 <nul set /p "= for %deviceid% "
 
-
-
-
 if exist %tempdir%\boardid rmdir %tempdir%\boardid /S /Q >NUL
 
 CALL :log info Device recognized as %deviceid%
 
-title iKeyHelper v%version% running %deviceid%, iOS %ipswversion%%MarketingVersiontitle% (%BuildNumber%) - (c) %year% cj 
+title iKeyHelper v%version% running %deviceid%, iOS %ipswversion%%MarketingVersiontitle% (%BuildNumber%) - (c) 2012 cj 
 
 :: fuck manifest reading. lets do this cj style.
 :: rofl iH8sn0w's one 'suggestion' down the drain. baahahahahahaha
