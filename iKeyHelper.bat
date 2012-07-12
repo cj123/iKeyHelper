@@ -1,4 +1,4 @@
-:: iKeyHelper v1.3	  	
+:: iKeyHelper
 :: Copyright (C) 2012 Callum Jones
 :: See attached license
 
@@ -11,8 +11,9 @@ title iKeyHelper
 
 ::------------------------------------------------------------------------------------
 
-SETLOCAL EnableDelayedExpansion
+
 setlocal
+setlocal enableextensions enabledelayedexpansion
 
 :: set some vars
 :: version
@@ -32,7 +33,9 @@ cls
 
 if not exist %UserProfile%\iKeyHelper mkdir %UserProfile%\iKeyHelper >NUL
 if not exist "%UserProfile%\iKeyHelper\iKeyHelper.settings.bat" (
-	echo Not found settings file...
+	echo Not found settings file.
+	echo Please place the settings file in %UserProfile%\iKeyHelper.
+	pause
 )
 
 :: parse the settings
@@ -143,8 +146,8 @@ if not exist %appdata%\iKeyHelper\read.me (
 	echo read >%appdata%\iKeyHelper\read.me
 )
 
-setlocal enableextensions enabledelayedexpansion
-setlocal
+
+
 set /P tehinfile=- File: %=%
 
 :: Remove quotes from infile if they exist, then put them back ;)
@@ -1127,18 +1130,99 @@ echo }}>>iphonewikikeys.txt
 if not exist "%bundledir%\%url_parsing_device%" mkdir "%bundledir%\%url_parsing_device%"
 
 copy iphonewikikeys.txt "%bundledir%\%url_parsing_device%\%ipswname%.txt" >nul
-echo - Saved File to iKeyHelper bundle directory
-
-if exist "%bundledir%\iPod Touch 4th Gen" move /y "%bundledir%\iPod Touch 4th Gen" "%bundledir%\iPod Touch 4" >NUL
-
 
 start "" notepad "%bundledir%\%url_parsing_device%\%ipswname%.txt"
 
+:: create a plist file for this.
+
+if not exist %MYFILES%\Template.plist.txt (
+	call :log error No Template.plist.txt... skipping
+	goto urlopen
+)
+
+move /y %MYFILES%\Template.plist.txt %tempdir%\Template.plist.txt >nul
+
+%tools%\ssr.exe 0 "[BoardConfig]" "%boardid%ap" %tempdir%\Template.plist.txt
+
+%tools%\ssr.exe 0 "[iBSSName]" "%ibss%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[iBSSIV]" "%iv15%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[iBSSKey]" "%key15%" %tempdir%\Template.plist.txt
+
+%tools%\ssr.exe 0 "[RecoveryModeName]" "%recoverymode%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[RecoveryModeIV]" "%iv7%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[RecoveryModeKey]" "%key7%" %tempdir%\Template.plist.txt
+
+%tools%\ssr.exe 0 "[DeviceTreeName]" "%devicetree%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[DeviceTreeIV]" "%iv5%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[DeviceTreeKey]" "%key5%" %tempdir%\Template.plist.txt
+
+%tools%\ssr.exe 0 "[GlyphChargingName]" "%glyphcharging%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[GlyphChargingIV]" "%iv10%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[GlyphChargingKey]" "%key10%" %tempdir%\Template.plist.txt
+
+%tools%\ssr.exe 0 "[BatteryCharging1Name]" "%batterycharging1%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[BatteryCharging1IV]" "%iv13%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[BatteryCharging1Key]" "%key13%" %tempdir%\Template.plist.txt
+
+%tools%\ssr.exe 0 "[iBootName]" "%iboot%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[iBootIV]" "%iv4%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[iBootKey]" "%key4%" %tempdir%\Template.plist.txt
+
+%tools%\ssr.exe 0 "[BatteryCharging0Name]" "%batterycharging0%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[BatteryCharging0IV]" "%iv12%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[BatteryCharging0Key]" "%key12%" %tempdir%\Template.plist.txt
+
+%tools%\ssr.exe 0 "[BatteryLow0Name]" "%batterylow0%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[BatteryLow0IV]" "%iv8%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[BatteryLow0Key]" "%key8%" %tempdir%\Template.plist.txt
+
+%tools%\ssr.exe 0 "[LLBName]" "%llb%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[LLBIV]" "%iv3%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[LLBKey]" "%key3%" %tempdir%\Template.plist.txt
+
+%tools%\ssr.exe 0 "[iBECName]" "%ibec%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[iBECIV]" "%iv16%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[iBECKey]" "%key16%" %tempdir%\Template.plist.txt
+
+%tools%\ssr.exe 0 "[KernelCacheName]" "%kernel%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[KernelCacheIV]" "%iv17%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[KernelCacheKey]" "%key17%" %tempdir%\Template.plist.txt
+
+%tools%\ssr.exe 0 "[RootFileSystemDMG]" "%rootfilesystem%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[RootFileSystemKey]" "%rtkey%" %tempdir%\Template.plist.txt
+
+%tools%\ssr.exe 0 "[AppleLogoName]" "%applelogo%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[AppleLogoIV]" "%iv6%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[AppleLogoKey]" "%key6%" %tempdir%\Template.plist.txt
+
+%tools%\ssr.exe 0 "[UpdateRamdiskDMG]" "%update%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[UpdateRamdiskIV]" "%iv19%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[UpdateRamdiskKey]" "%key19%" %tempdir%\Template.plist.txt
+
+%tools%\ssr.exe 0 "[RestoreRamdiskDMG]" "%restore%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[RestoreRamdiskIV]" "%iv18%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[RestoreRamdiskKey]" "%key18%" %tempdir%\Template.plist.txt
+
+%tools%\ssr.exe 0 "[GlyphPluginName]" "%glyphplugin%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[GlyphPluginIV]" "%iv11%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[GlyphPluginKey]" "%key11%" %tempdir%\Template.plist.txt
+
+%tools%\ssr.exe 0 "[BatteryLow1Name]" "%batterylow1%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[BatteryLow1IV]" "%iv9%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[BatteryLow1Key]" "%key9%" %tempdir%\Template.plist.txt
+
+%tools%\ssr.exe 0 "[FirmwareVersion]" "%ipswversion%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[FirmwareURL]" "%downloadurl%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[BuildID]" "%BuildNumber%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[BuildTrain]" "%BuildTrain%" %tempdir%\Template.plist.txt
+
+move /y "%tempdir%\Template.plist.txt" "%bundledir%\%url_parsing_device%\%ipswname%.plist" >nul
+echo - Saved Keys and Plist files to "%bundledir%"
+
+:urlopen
 echo - Opening theiphonewiki page for %BuildTrain% %BuildNumber% (%url_parsing_device%)...
 CALL :log info Opening theiphonewiki page for %BuildTrain%_%BuildNumber% ...
 start http://theiphonewiki.com/wiki/index.php?title=%BuildTrain%_%BuildNumber%_(%deviceidw%)^&action=edit
-
-
 
 cd %tempdir%
 
