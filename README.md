@@ -15,10 +15,10 @@ iKeyHelper is scripted in Batch. Its features include: formatting for TheiPhoneW
 * various parts of **Cygwin**
 * ideviceinfo and dll's from **libimobiledevice**
 
-If you want to use iKeyHelper, you must first collect these parts - as a general guidance, you can find the required .exe's in tools.txt.
+If you want to use iKeyHelper, you must first collect these parts - as a general guidance, you can find the required .exe's in resources/tools.txt.
 
 Also, you need iTunes, libusb (and device filters installed for each mode) for iKeyHelper to function properly.
 
 ## License
 
-**iKeyHelper** is licensed under the GNU GPLv3. See the LICENSE file for more information.
+**iKeyHelper** is licensed under the GNU GPL v3. See the LICENSE file for more information.

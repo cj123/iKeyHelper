@@ -6,10 +6,18 @@ builds/
 # shortcuts
 .lnk
 
+# any tools
+*.exe
+*.dll
+*.zip
+
 # loader files
 Loader.bat
-Main.bat
-update_version.bat
 version.bat
 version.txt
 *.ico
+
+# build files 
+Main.bat
+update_version.bat
+*-build.bat
