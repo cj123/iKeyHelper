@@ -1,1 +1,15 @@
+# folders
 tools/
+scripts/
+builds/
+
+# shortcuts
+.lnk
+
+# loader files
+Loader.bat
+Main.bat
+update_version.bat
+version.bat
+version.txt
+*.ico
