@@ -4,7 +4,7 @@ scripts/
 builds/
 
 # shortcuts
-.lnk
+*.lnk
 
 # any tools
 *.exe
