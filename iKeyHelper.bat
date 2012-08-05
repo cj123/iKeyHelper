@@ -11,13 +11,11 @@ title iKeyHelper
 
 ::------------------------------------------------------------------------------------
 
-
 setlocal
 setlocal enableextensions enabledelayedexpansion
 
-:: set some vars
 :: version
-set version=1.3.0
+set version=1.4.0
 
 :beginning
 
@@ -33,10 +31,11 @@ cls
 
 if not exist %UserProfile%\iKeyHelper mkdir %UserProfile%\iKeyHelper >NUL
 if not exist "%UserProfile%\iKeyHelper\iKeyHelper.settings.bat" (
-	echo Not found settings file.
-	echo Please place the settings file in %UserProfile%\iKeyHelper.
+	echo Cannot find settings file.
+	echo Please place the settings file at %UserProfile%\iKeyHelper\iKeyHelper.settings.bat
 	pause
 )
+if not exist "%UserProfile%\iKeyHelper\iKeyHelper.settings.bat" goto beginning
 
 :: parse the settings
 call %UserProfile%\iKeyHelper\iKeyHelper.settings.bat this-is-meant-to-be-run
@@ -81,9 +80,7 @@ if "%viewlog%"=="yes" (
 
 
 CALL :log info -----------------------------------------------------------------------------
-
 CALL :log info Starting iKeyHelper v%version%
-
 CALL :log info -----------------------------------------------------------------------------
 
 :: check for old files and remove them
@@ -100,9 +97,7 @@ goto top
 
 :top
 
-
 cd %tempdir%
-
 cls
 
 set tehinfile= >NUL
@@ -148,17 +143,15 @@ if not exist %appdata%\iKeyHelper\read.me (
 
 
 
-set /P tehinfile=- File: %=%
+set /P quotedinfile=- File: %=%
 
 :: Remove quotes from infile if they exist, then put them back ;)
-CALL :dequote tehinfile
-set IPSW="%tehinfile%"
+CALL :dequote quotedinfile
+set IPSW="%quotedinfile%"
 
 if %IPSW%=="x" ( 
-	call :log info Opening IPSW downloader...
 	goto downloadme
 ) else if %IPSW%=="dl" (
-	call :log info Opening IPSW downloader...
 	goto downloadme
 )
 
@@ -166,6 +159,8 @@ if %IPSW%=="x" (
 goto checkloop 
 
 :downloadme
+call :log info Opening IPSW downloader...
+
 cls 
 echo.
 echo  Download an...
@@ -182,11 +177,9 @@ echo.
 echo --------------------------------------------------------------------------------
 echo - You have chosen to download an IPSW file. 
 echo - Which device are you downloading for? (e.g. iPhone3,1)
-
 set /P dldevice=- Device: %=%
 
 echo - Which firmware do you wish to download? (e.g. 5.0.1)
-
 set /P dlfw=- Firmware: %=%
 
 :: echo - What is the BuildID of this firmware? (e.g. 9A405)
@@ -203,6 +196,7 @@ echo - Fetching Link...
 
 %tools%\curl -A "iKeyHelper - %uuid% - %version%" --silent http://api.ios.icj.me/v2/%dldevice%/%dlfw%/url -I>response.txt
 
+:: check for multiple buildids
 findstr "300 Multiple Choices" response.txt > nul
 
 if errorlevel 1 (
@@ -210,9 +204,7 @@ if errorlevel 1 (
 	goto downloadipsw
 )
 
-
-
-<nul set /p "= - Multiple Buildid's Found: "
+<nul set /p "= - Multiple BuildIDs Found: "
 %tools%\curl -A "iKeyHelper - %uuid% - %version%" --silent http://api.ios.icj.me/v2/%dldevice%/%dlfw%/buildid>choices.txt
 
 :: remove some stuff, make it more prettier
@@ -227,12 +219,9 @@ type choices.txt
 set /P dlid=- Choose one BuildID: %=%
 
 set downloadlink=http://api.ios.icj.me/v2/%dldevice%/%dlid%
-
-
 goto downloadipsw
 	
 :downloadipsw
-
 
 %tools%\curl -A "iKeyHelper - %uuid% - %version%" --silent %downloadlink%/url -I>response.txt
 
@@ -312,26 +301,19 @@ echo                              ----------------------
 echo.
 echo.
 
-
-:: Remove quotes from infile if they exist, then put them back ;)
-CALL :dequote tehinfile
-set IPSW="%tehinfile%"
 call :log Detected input file as %IPSW%
-:: start the timer
 
+:: start the timer
 set starttime=%time%
 
 :: create userside directory
-
 if not exist "%bundledir%" (
 	mkdir "%bundledir%" >NUL
 	CALL :log info Making directory: %bundledir%
 )
 
 :: check whether this is infact an IPSW...
-
 echo %IPSW% | findstr ".ipsw" >NUL
-
 
 if not "%ERRORLEVEL%"=="0" (
 	CALL :log error This isn't an IPSW.
@@ -354,15 +336,13 @@ cd %tempdir%
 if exist %tempdir%\temp.txt del %tempdir%\temp.txt /S /Q >NUL
 if exist %tempdir%\sha1.txt del %tempdir%\sha1.txt /S /Q >NUL
 
-:: extract ipsw..... 
-
+:: extract ipsw except RootFS and Ramdisks
 CALL :log info Unzipping %IPSW%...
 call %tools%\7za.exe e -oIPSW -mmt %IPSW% kernel* Firmware/* *.plist >> %logdir%\%timestamp%  
 
 echo Done^^!
 
 <nul set /p "= - IPSW Info: " 
-
 
 call :parse %tempdir%\IPSW\Restore.plist ProductVersion >productversion.txt
 for /f "tokens=* delims= " %%a in (productversion.txt) do set ipswversion=%%a
@@ -405,7 +385,6 @@ for %%a in (%IPSW%) do (
 CALL :log info %shortipsw% size: %sizeofipsw%MB
 
 :: Boardid verification
-
 set boardid=
 set bdid=
 
@@ -436,11 +415,7 @@ CALL :log info Device recognized as %deviceid%
 
 title iKeyHelper v%version% running %deviceid%, iOS %ipswversion%%MarketingVersiontitle% (%BuildNumber%) - (c) 2012 cj 
 
-:: fuck manifest reading. lets do this cj style.
-:: rofl iH8sn0w's one 'suggestion' down the drain. baahahahahahaha
-:: yea ik its messy
-
-:: ipsw name check.
+:: ipsw name
 if exist checkme.txt del checkme.txt /S /Q >NUL
 if exist temp.txt del temp.txt /S /Q >NUL
 echo %shortipsw% >checkme.txt
@@ -452,8 +427,6 @@ set /P ipswname=<checkme.txt
 if exist checkme.txt del checkme.txt
 
 :: baseband version detection
-:: i'm gonna hate this.
-
 call :log info Detecting Baseband version 
 
 pushd %tempdir%\IPSW
@@ -484,13 +457,13 @@ if %boardid%==n90 (
 	call :log info This device does not have a baseband^^! [or-baseband-detection-is-not-supported]
 	set baseband=
 )
-
-
+popd 
 if "%boardid%"=="n90" ( 
 	echo - Baseband %baseband%
 ) else if "%boardid%"=="n92" ( 
 	echo - Baseband %baseband%
 ) else (
+	REM yes this is important
 	echo.
 )
 if "%requiresdevice%"=="yes" (
@@ -501,6 +474,7 @@ if "%requiresdevice%"=="yes" (
 	echo - Use any A4 device to get keys for this firmware.
 	goto nodevicecheck
 )
+
 
 :devicecheck
 
@@ -529,12 +503,11 @@ if /I not "%detectedDevice%"=="%boardid%ap" (
 	goto beginning
 )
 
+goto nodevicecheck
+
 :nodevicecheck
 
-popd 
-
 :: get the file names from manifest
-
 for /f "tokens=*" %%a IN ('find "applelogo" ^<%tempdir%\IPSW\manifest') do set applelogo=%%a
 for /f "tokens=*" %%a IN ('find "batterylow0" ^<%tempdir%\IPSW\manifest') do set batterylow0=%%a
 for /f "tokens=*" %%a IN ('find "batterylow1" ^<%tempdir%\IPSW\manifest') do set batterylow1=%%a
@@ -579,12 +552,6 @@ if exist %tempdir%\IPSW\oldstyle.txt del %tempdir%\IPSW\oldstyle.txt /S /Q >NUL
 
 %tools%\binmay.exe -i %tempdir%\Restore1.txt -o %tempdir%\Restore2.txt -s "3C 2F 73 74 72 69 6E 67 3E" 2>NUL
 
-REM :: remove top 3 lines (all the crap)
-REM for /f "skip=3" %%A in (%tempdir%\Restore2.txt) do ( echo %%A >> # )
-REM del "%tempdir%\Restore2.txt" 
-REM for /f %%A in (#) do ( echo %%A >> %tempdir%\Restore2.txt)
-REM del #
-
 :: replace User with restore, for easier identification
 
 %tools%\ssr.exe 1 "User" "Restore" %tempdir%\Restore2.txt
@@ -601,10 +568,8 @@ FOR /F "tokens=2 delims=:" %%a IN ('find "NotherRD" ^<%tempdir%\Restore4.txt') D
 
 if "%notherRD%"=="%restore%" (
 	FOR /F "tokens=2 delims=:" %%a IN ('find "RootFS" ^<%tempdir%\Restore4.txt') DO SET rootfilesystem=%%a 
-
 ) else (
 	SET rootfilesystem=%notherRD%
-
 )
 
 :: same as above but for update
@@ -662,9 +627,9 @@ if exist asr* del asr* /S /Q >NUL
 CALL :log info Getting KBAGs...
 :: delete the files
 
-:: if exist %tempdir%\Restore.txt del %tempdir%\Restore.txt /S /Q >NUL
-:: if exist %tempdir%\Restore1.txt del %tempdir%\Restore1.txt /S /Q >NUL
-:: if exist %tempdir%\Restore2.txt del %tempdir%\Restore2.txt /S /Q >NUL
+if exist %tempdir%\Restore.txt del %tempdir%\Restore.txt /S /Q >NUL
+if exist %tempdir%\Restore1.txt del %tempdir%\Restore1.txt /S /Q >NUL
+if exist %tempdir%\Restore2.txt del %tempdir%\Restore2.txt /S /Q >NUL
 
 :kbags
 
@@ -695,9 +660,11 @@ if exist %tempdir%\IPSW\%restore% (
 	if not exist asr-test2 ( 
 		::echo doing RESTORE
 		set restoreenc=y
+		call :log info Restore is encrypted
 		call :grabkbag %restore% >>%tempdir%\all.txt
 	) else (
 		set restoreenc=n
+		call :log info Restore not encrypted
 		echo go echo %restore% >>%tempdir%\all.txt
 		echo go echo *Not_Encrypted >>%tempdir%\all.txt
 	)
@@ -709,9 +676,11 @@ if "%updateishere%"=="yes" (
 	if not exist asr-test1 (
 		::echo DOING UPDATE
 		set updateenc=y
+		call :log info Update is encrypted
 		call :grabkbag %update% >>%tempdir%\all.txt
 	) else (
 		set updateenc=n
+		call :log info Update is not encrypted
 		echo go echo %update% >>%tempdir%\all.txt
 		echo go echo *Not_Encrypted >>%tempdir%\all.txt
 	)
@@ -741,9 +710,10 @@ if "%ERRORLEVEL%"=="0" (
 )
 
 
-::checking for dfu - an even better way. :)
+::checking for dfu
 <nul set /p "= - Please Enter DFU mode... "
 goto dfucheck
+
 :dfucheck
 %tools%\irecovery.exe -c | find /I /N "DFU">NUL
 
@@ -760,9 +730,7 @@ if "%ERRORLEVEL%"=="0" (
 call %tools%\irecovery.exe -c "setenv boot-args 2" >nul
 call %tools%\irecovery.exe -c "saveenv" >nul
 
-
 call :log info Extracting RootFS
-
 start /B "" %tools%\7za.exe e -o%tempdir%\IPSW -mmt %IPSW% %rootfilesystem% >NUL
 
 cd %tempdir%
@@ -954,14 +922,13 @@ if "%errorlevel%"=="0" (
 )
 
 
-:: Get the baseband for iPad from ramdisk
+
 if "%bdid%"=="ipad11" goto ipadbb
 if "%bdid%"=="iphone21" goto ipadbb
-:: else go somewhere nicer.
-
 goto noipadbb
 
 :ipadbb
+:: Get the baseband for iPad from ramdisk
 if exist %tempdir%\ipad-bb rmdir %tempdir%\ipad-bb /S /Q >NUL
 CALL :log info Getting iPad/3G[S] Baseband
 if not exist %tempdir%\ipad-bb mkdir %tempdir%\ipad-bb
@@ -1227,25 +1194,16 @@ start http://theiphonewiki.com/wiki/index.php?title=%BuildTrain%_%BuildNumber%_(
 cd %tempdir%
 
 if not "%rtkey%"=="" (
-
 	<nul set /p "= - Decrypting Root Filesystem... "
-
 	if exist "%tempdir%\decrypted\%rootfilesystem%.dec" del "%tempdir%\decrypted\%rootfilesystem%.dec" /S /Q >NUL
-
 	%tools%\dmg.exe extract %tempdir%\IPSW\%rootfilesystem% %tempdir%\decrypted\%rootfilesystem%.dec -k %rtkey% >NUL
-
 	echo Done^^!
-
 ) else (
+	call :log error Cannot decrypt RootFS
 	echo - Unable to decrypt Root Filesystem :(
 )
 
 pushd %tempdir%\decrypted 
-
-:: you idiot. why did you do this you numpty?!
-:: 'derp why it no worky'
-:: if exist %restore%.dec del %restore%.dec /S /Q >NUL
-:: if exist %update%.dec del %update%.dec /S /Q >NUL
 
 <nul set /p "= - Decrypting other files... "
 
