@@ -15,7 +15,7 @@ setlocal
 setlocal enableextensions enabledelayedexpansion
 
 :: version
-set version=1.4.0
+set version=1.4.1
 
 :beginning
 
@@ -23,8 +23,9 @@ set tools=%appdata%\iKeyHelper\bin
 set logdir=%appdata%\iKeyHelper\logs
 set tempdir=%temp%\iKeyHelper
 
-:: still ignore this ;)
-set uuid=iKeyHelper~git
+if "%uuid%"=="" (
+	set uuid=iKeyHelper~git
+)
 
 title iKeyHelper v%version% - (c) 2012 cj 
 cls
@@ -266,7 +267,7 @@ if exist "G:\Apple Firmware" (
 		call :log info IPSW move succeeded
 	)
 
-	set tehinfile="G:\Apple Firmware\%dldevice%\Official\%ipswName%"
+	set IPSW="G:\Apple Firmware\%dldevice%\Official\%ipswName%"
 	cls
 	echo - IPSW download finished^^! Saved to "G:\Apple Firmware\%dldevice%\Official\%ipswName%"
 
@@ -280,7 +281,7 @@ if exist "G:\Apple Firmware" (
 		call :log info IPSW move succeeded
 	)
 
-	set tehinfile="%UserProfile%\Desktop\%ipswName%"
+	set IPSW="%UserProfile%\Desktop\%ipswName%"
 	cls
 	echo - IPSW download finished^^! Saved to "%UserProfile%\Desktop\%ipswName%"
 )
