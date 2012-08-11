@@ -6,8 +6,10 @@
 set bdid=%1
 
 if "%bdid%"=="" (
+
 	echo No Boardid Supplied
 	goto eof
+	
 ) else if "%bdid%"=="iPod41" (
 
 	REM iPod Touch 4
@@ -77,20 +79,6 @@ if "%bdid%"=="" (
 	set deviceidw=iPod_Touch_3G
 	set url_parsing_device=iPod Touch 3
 	set requiresdevice=yes
-
-) else if "%bdid%"=="iPhone41" (
-
-	REM iPhone 4[S]
-	echo.
-	echo - Unsupported device detected! 
-	echo - Press any key to exit...
-	pause >NUL
-	exit
-	set bdid=iphone41
-	set deviceid=iPhone 4[S]
-	set boardid=n94
-	set deviceidw=iPhone_4S
-	set url_parsing_device=iPhone 4[S]
 
 ) else (
 
