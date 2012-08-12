@@ -15,7 +15,7 @@ iKeyHelper is scripted in Batch. Its features include: formatting for TheiPhoneW
 * various parts of **Cygwin**
 * ideviceinfo and dll's from **libimobiledevice**
 
-If you want to use iKeyHelper, you must first collect these parts - as a general guidance, you can find the required .exe's in resources/tools.txt.
+If you want to use iKeyHelper, you must first collect these parts - as a general guidance, you can find the required .exe's in resources/tools.txt. When you have them, place them in resources/tools/ and run the iKeyHelper.bat. It will then run from the files.
 
 Also, you need iTunes, libusb (and device filters installed for each mode) for iKeyHelper to function properly.
 
