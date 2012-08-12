@@ -2,8 +2,7 @@
 :: Copyright (C) 2012 Callum Jones
 :: See attached license
 
-:: if you get all the tools, pop them in a tools.zip and place it at %appdata%\iKeyHelper\tools.zip
-:: copy device_definitions.bat and iKeyHelper.settings.bat to %UserProfile%\iKeyHelper\
+:: if you get all the tools, pop them in resources\tools\
 
 @ECHO OFF
 
@@ -11,11 +10,8 @@ title iKeyHelper
 
 ::------------------------------------------------------------------------------------
 
-setlocal
 setlocal enableextensions enabledelayedexpansion
 
-:: version
-set version=1.4.1
 
 :beginning
 
@@ -23,9 +19,46 @@ set tools=%appdata%\iKeyHelper\bin
 set logdir=%appdata%\iKeyHelper\logs
 set tempdir=%temp%\iKeyHelper
 
+if not exist %appdata%\iKeyHelper mkdir %appdata%\iKeyHelper >NUL
+if not exist %tools% mkdir %tools% >NUL
+if not exist %tempdir% mkdir %tempdir% >NUL
+if not exist %logdir% mkdir %logdir% >NUL
+
 if "%uuid%"=="" (
 	set uuid=iKeyHelper~git
 )
+
+call :log info ## 2>NUL >NUL
+CALL :log info #############################################################################
+CALL :log info Starting iKeyHelper v%version%
+CALL :log info #############################################################################
+
+
+if "%uuid%"=="iKeyHelper~git" (
+	REM check for tools
+	call :toolcheck 7za.exe
+	call :toolcheck binmay.exe
+	call :toolcheck curl.exe
+	call :toolcheck dmg.exe
+	call :toolcheck genpass.exe
+	call :toolcheck hfsplus.exe
+	call :toolcheck iconv.dll
+	call :toolcheck ideviceinfo.exe
+	call :toolcheck injectpois0n.exe
+	call :toolcheck intl.dll
+	call :toolcheck irecovery.exe
+	call :toolcheck libcurl.dll
+	call :toolcheck libeay32.dll
+	call :toolcheck libglib-2.0-0.dll
+	call :toolcheck libpng12.dll
+	call :toolcheck libssl32.dll
+	call :toolcheck libxml2.dll
+	call :toolcheck readline5.dll
+	call :toolcheck ssr.exe
+	call :toolcheck xpwntool.exe
+	call :toolcheck zlib1.dll
+)
+
 
 title iKeyHelper v%version% - (c) 2012 cj 
 cls
@@ -33,10 +66,12 @@ cls
 if not exist %UserProfile%\iKeyHelper mkdir %UserProfile%\iKeyHelper >NUL
 if not exist "%UserProfile%\iKeyHelper\iKeyHelper.settings.bat" (
 	echo Cannot find settings file.
-	echo Please place the settings file at %UserProfile%\iKeyHelper\iKeyHelper.settings.bat
-	pause
+	echo Downloading new settings file.
+	pushd %UserProfile%\iKeyHelper
+		call %tools%\curl -LO https://github.com/cj123/iKeyHelper/raw/master/resources/iKeyHelper.settings.bat --progress-bar
+	popd
 )
-if not exist "%UserProfile%\iKeyHelper\iKeyHelper.settings.bat" goto beginning
+
 
 :: parse the settings
 call %UserProfile%\iKeyHelper\iKeyHelper.settings.bat this-is-meant-to-be-run
@@ -49,12 +84,12 @@ cd %tempdir%
 
 :: delete me some stuffs
 
-if exist * del * /S /Q >NUL
-if exist dlipsw rmdir dlipsw /S /Q >NUL
-if exist IPSW rmdir IPSW /S /Q >NUL
-if exist tools rmdir tools /S /Q >NUL
-if exist decrypted rmdir decrypted /S /Q >NUL
-if exist *.txt del *.txt /S /Q >NUL
+if exist * del * /S /Q >> %logme%
+if exist dlipsw rmdir dlipsw /S /Q >> %logme%
+if exist IPSW rmdir IPSW /S /Q >> %logme%
+if exist tools rmdir tools /S /Q >> %logme%
+if exist decrypted rmdir decrypted /S /Q >> %logme%
+if exist *.txt del *.txt /S /Q >> %logme%
 
 cls
 cd %tools%
@@ -64,34 +99,24 @@ if not exist %appdata%\iKeyHelper\bin\genpass.exe (
 	if not exist %tempdir% mkdir %tempdir% >nul
 	if not exist %tools% mkdir %tools% >nul
 	copy %MYFILES%\7za.exe %tools%\7za.exe >nul
-	call 7za.exe x -y -mmt %appdata%\iKeyHelper\tools.zip >nul
+	call 7za.exe x -y -mmt %appdata%\iKeyHelper\tools.zip >> %logme%
 )
-
-
-cls
-echo Generating log file...
-:: create error log file
-
-set timestamp=iKeyHelper_%version%.log
 
 if "%viewlog%"=="yes" (
-	taskkill /F /IM "baretail.exe" 2>NUL >NUL
-	start "" %tools%\baretail "%logdir%\%timestamp%"
+	if exist %tools%\baretail.exe (
+		taskkill /F /IM "baretail.exe" 2>NUL >NUL
+		start "" %tools%\baretail "%logdir%\%timestamp%"
+	)
 )
-
-
-CALL :log info -----------------------------------------------------------------------------
-CALL :log info Starting iKeyHelper v%version%
-CALL :log info -----------------------------------------------------------------------------
 
 :: check for old files and remove them
 CALL :log info Clearing existing files
-if exist %tempdir%\kbags rmdir /S /Q %tempdir%\kbags >nul
-if exist %tempdir%\IPSW rmdir /S /Q %tempdir%\IPSW >nul
-if exist %tempdir%\ipad-bb rmdir /S /Q %tempdir%\ipad-bb >nul
-if exist %tempdir%\dlipsw rmdir /S /Q %tempdir%\dlipsw >nul
-if exist %tempdir%\keys.txt del /S /Q if exist %tempdir%\keys.txt >nul
-if exist %tempdir%\all.txt del /S /Q %tempdir%\all.txt >nul
+if exist %tempdir%\kbags rmdir /S /Q %tempdir%\kbags >> %logme%
+if exist %tempdir%\IPSW rmdir /S /Q %tempdir%\IPSW >> %logme%
+if exist %tempdir%\ipad-bb rmdir /S /Q %tempdir%\ipad-bb >> %logme%
+if exist %tempdir%\dlipsw rmdir /S /Q %tempdir%\dlipsw >> %logme%
+if exist %tempdir%\keys.txt del /S /Q if exist %tempdir%\keys.txt >> %logme%
+if exist %tempdir%\all.txt del /S /Q %tempdir%\all.txt >> %logme%
 cls	
 
 goto top
@@ -101,8 +126,7 @@ goto top
 cd %tempdir%
 cls
 
-set tehinfile= >NUL
-set IPSW=  >NUL
+set IPSW=
 echo [v=%version%]
 echo.
 echo                                   iKeyHelper    
@@ -136,13 +160,11 @@ echo ___________________________________________________________________________
 
 :: open readme (once)
 
-if not exist %appdata%\iKeyHelper\read.me (
+if not exist %appdata%\iKeyHelper\readme.txt (
 	CALL :log info Opening ReadMe
 	start http://www.icj.me/iKeyHelper
-	echo read >%appdata%\iKeyHelper\read.me
+	echo read >%appdata%\iKeyHelper\readme.txt
 )
-
-
 
 set /P quotedinfile=- File: %=%
 
@@ -155,7 +177,6 @@ if %IPSW%=="x" (
 ) else if %IPSW%=="dl" (
 	goto downloadme
 )
-
 
 goto checkloop 
 
@@ -231,6 +252,7 @@ findstr "200 OK" response.txt > nul
 if errorlevel 1 (
 	echo - Error: Link not found.
 	echo - Press any key to return to the IPSW downloader.
+	call :log error Unable to find IPSW link
 	pause >NUL
 	goto downloadme
 )
@@ -259,7 +281,7 @@ if exist "G:\Apple Firmware" (
 	call :log info moving %ipswName% to "%UserProfile%\Desktop\%ipswName%"
 	if not exist "G:\Apple Firmware\%dldevice%" mkdir "G:\Apple Firmware\%dldevice%" >NUL
 	if not exist "G:\Apple Firmware\%dldevice%\Official" mkdir "G:\Apple Firmware\%dldevice%\Official" >NUL
-	move /y "%ipswName%" "G:\Apple Firmware\%dldevice%\Official\%ipswName%" >NUL
+	move /y "%ipswName%" "G:\Apple Firmware\%dldevice%\Official\%ipswName%" >> %logme%
 
 	if not exist "G:\Apple Firmware\%dldevice%\Official\%ipswName%" (
 		call :log error IPSW move failed
@@ -273,7 +295,7 @@ if exist "G:\Apple Firmware" (
 
 ) else (
 	call :log info moving %ipswName% to "%UserProfile%\Desktop\%ipswName%"
-	move /y "%ipswName%" "%UserProfile%\Desktop\%ipswName%" >NUL
+	move /y "%ipswName%" "%UserProfile%\Desktop\%ipswName%" >> %logme%
 
 	if not exist "%UserProfile%\Desktop\%ipswName%" (
 		call :log error IPSW move failed
@@ -339,45 +361,33 @@ if exist %tempdir%\sha1.txt del %tempdir%\sha1.txt /S /Q >NUL
 
 :: extract ipsw except RootFS and Ramdisks
 CALL :log info Unzipping %IPSW%...
-call %tools%\7za.exe e -oIPSW -mmt %IPSW% kernel* Firmware/* *.plist >> %logdir%\%timestamp%  
+call %tools%\7za.exe e -oIPSW -mmt %IPSW% kernel* Firmware/* *.plist >> %logme%
 
 echo Done^^!
 
 <nul set /p "= - IPSW Info: " 
 
-call :parse %tempdir%\IPSW\Restore.plist ProductVersion >productversion.txt
-for /f "tokens=* delims= " %%a in (productversion.txt) do set ipswversion=%%a
+call :parse %tempdir%\IPSW\Restore.plist ProductVersion
+call :parse %tempdir%\IPSW\Restore.plist MarketingVersion
 
-call :parse %tempdir%\IPSW\Restore.plist MarketingVersion >MarketingVersion.txt
-for /f "tokens=* delims= " %%a in (MarketingVersion.txt) do set MarketingVersion=%%a
-
-if not %errorlevel%==1 (
+if not %ProductVersion%==%MarketingVersion% (
 	set marketingversionexists=yes
-	for /f "tokens=* delims= " %%a in (MarketingVersion.txt) do set MarketingVersiontitle= [%%a]
+	set MarketingVersiontitle= [%MarketingVersion%]
 ) else (
 	set marketingversionexists=no
 )
 
-<nul set /p "= iOS %ipswversion%%MarketingVersiontitle% "
+<nul set /p "= iOS %ProductVersion%%MarketingVersiontitle% "
 
-:: get Platform
-
-call :parse %tempdir%\IPSW\Restore.plist Platform >Platform.txt
-
-for /f "tokens=* delims= " %%a in (Platform.txt) do set platform=%%a
-
-:: do some more parsing because epic.
-
-call :parse %tempdir%\IPSW\BuildManifest.plist BuildTrain >BuildTrain.txt
-for /f "tokens=* delims= " %%a in (BuildTrain.txt) do set BuildTrain=%%a
-
-call :parse %tempdir%\IPSW\BuildManifest.plist BuildNumber >BuildNumber.txt
-for /f "tokens=* delims= " %%a in (BuildNumber.txt) do set BuildNumber=%%a
+call :parse %tempdir%\IPSW\Restore.plist Platform
+call :parse %tempdir%\IPSW\BuildManifest.plist BuildTrain
+call :parse %tempdir%\IPSW\Restore.plist ProductType 
+call :parse %tempdir%\IPSW\BuildManifest.plist BuildNumber
 
 <nul set /p "= (%BuildNumber%) "
 
-if exist %tempdir%\temp.txt del %tempdir%\temp.txt /S /Q >NUL
-if exist %tempdir%\sha1.txt del %tempdir%\sha1.txt /S /Q >NUL
+if exist %tempdir%\temp.txt del %tempdir%\temp.txt /S /Q >> %logme%
+if exist %tempdir%\sha1.txt del %tempdir%\sha1.txt /S /Q >> %logme%
 
 for %%a in (%IPSW%) do (
 	set /a sizeofipsw=%%~za / 1048576
@@ -385,27 +395,14 @@ for %%a in (%IPSW%) do (
 
 CALL :log info %shortipsw% size: %sizeofipsw%MB
 
-:: Boardid verification
-set boardid=
-set bdid=
-
-call :parse %tempdir%\IPSW\Restore.plist ProductVersion >productversion.txt
-for /f "tokens=* delims= " %%a in (productversion.txt) do set ipswversion=%%a
-
-:: find ProductType in the restore.plist
-
-call :parse %tempdir%\IPSW\Restore.plist ProductType >producttype.txt
-for /f "tokens=* delims= " %%a in (producttype.txt) do set ProductType=%%a
-:: remove commas (2c)
-
-%tools%\binmay.exe -i "producttype.txt" -o "producttype-1.txt" -s "2c" 2>NUL
-
-for /f "tokens=* delims= " %%a in (producttype-1.txt) do set bdid=%%a
-
-:: device IDs
+set bdid=%ProductType:,=%
+call :tolowercase %bdid%
 
 CALL :log info Getting Device Definitions...
 
+pushd %UserProfile%\iKeyHelper
+	call %tools%\curl -LO --silent https://github.com/cj123/iKeyHelper/raw/master/resources/device_definitions.bat >> %logme%
+popd
 call %UserProfile%\iKeyHelper\device_definitions.bat %bdid%
 
 <nul set /p "= for %deviceid% "
@@ -414,7 +411,7 @@ if exist %tempdir%\boardid rmdir %tempdir%\boardid /S /Q >NUL
 
 CALL :log info Device recognized as %deviceid%
 
-title iKeyHelper v%version% running %deviceid%, iOS %ipswversion%%MarketingVersiontitle% (%BuildNumber%) - (c) 2012 cj 
+title iKeyHelper v%version% running %deviceid%, iOS %ProductVersion%%MarketingVersiontitle% (%BuildNumber%) - (c) 2012 cj 
 
 :: ipsw name
 if exist checkme.txt del checkme.txt /S /Q >NUL
@@ -439,13 +436,13 @@ if %boardid%==n90 (
 	%tools%\ssr.exe 0 "ICE3_" "Baseband:" baseband.txt
 	%tools%\ssr.exe 0 "_BOOT_" /SSR_NL/ baseband.txt
 	:: yay a fun bit
-	FOR /F "tokens=2 delims=:" %%a IN ('find "Baseband" ^<baseband.txt') DO SET baseband=%%a 
+	FOR /F "tokens=2 delims=:" %%a IN ('find "Baseband" ^<baseband.txt') DO set baseband=%%a 
 ) else if %boardid%==n94 (
 	dir /B /OS Trek-*.Release.bbfw >>baseband.txt
 	%tools%\ssr.exe 0 "Trek-" "Baseband:" baseband.txt
 	%tools%\ssr.exe 0 ".Release.bbfw" /SSR_NL/ baseband.txt
 	:: yay a fun bit
-	FOR /F "tokens=2 delims=:" %%a IN ('find "Baseband" ^<baseband.txt') DO SET baseband=%%a 
+	FOR /F "tokens=2 delims=:" %%a IN ('find "Baseband" ^<baseband.txt') DO set baseband=%%a 
 ) else if %boardid%==n92 (
 	:: should be Phoenix-VE.RS.ION.Release.bbfw ?
 	::del Phoenix* /S /Q >NUL 2>NUL
@@ -453,7 +450,7 @@ if %boardid%==n90 (
 	%tools%\ssr.exe 0 "Phoenix-" "Baseband:" baseband.txt
 	%tools%\ssr.exe 0 ".Release" /SSR_NL/ baseband.txt
 	:: yay a fun bit
-	FOR /F "tokens=2 delims=:" %%a IN ('find "Baseband" ^<baseband.txt') DO SET baseband=%%a 
+	FOR /F "tokens=2 delims=:" %%a IN ('find "Baseband" ^<baseband.txt') DO set baseband=%%a 
 ) else (
 	call :log info This device does not have a baseband^^! [or-baseband-detection-is-not-supported]
 	set baseband=
@@ -529,7 +526,7 @@ cd IPSW
 
 <nul set /p "= - Getting Ramdisk Information... "
 
-if exist %tempdir%\IPSW\oldstyle.txt del %tempdir%\IPSW\oldstyle.txt /S /Q >NUL
+if exist %tempdir%\IPSW\oldstyle.txt del %tempdir%\IPSW\oldstyle.txt /S /Q >> %logme%
 
 :: Ramdisk identification, Done properly :)
 
@@ -564,19 +561,19 @@ if exist %tempdir%\IPSW\oldstyle.txt del %tempdir%\IPSW\oldstyle.txt /S /Q >NUL
 %tools%\ssr.exe 0 ".dmg" ".dmg/SSR_NL/" %tempdir%\Restore4.txt >NUL
 
 :: set restore as the word after Restore:
-FOR /F "tokens=2 delims=:" %%a IN ('find "Restore" ^<%tempdir%\Restore4.txt') DO SET restore=%%a 
-FOR /F "tokens=2 delims=:" %%a IN ('find "NotherRD" ^<%tempdir%\Restore4.txt') DO SET notherRD=%%a 
+FOR /F "tokens=2 delims=:" %%a IN ('find "Restore" ^<%tempdir%\Restore4.txt') DO set restore=%%a 
+FOR /F "tokens=2 delims=:" %%a IN ('find "NotherRD" ^<%tempdir%\Restore4.txt') DO set notherRD=%%a 
 
 if "%notherRD%"=="%restore%" (
-	FOR /F "tokens=2 delims=:" %%a IN ('find "RootFS" ^<%tempdir%\Restore4.txt') DO SET rootfilesystem=%%a 
+	FOR /F "tokens=2 delims=:" %%a IN ('find "RootFS" ^<%tempdir%\Restore4.txt') DO set rootfilesystem=%%a 
 ) else (
-	SET rootfilesystem=%notherRD%
+	set rootfilesystem=%notherRD%
 )
 
 :: same as above but for update
-FOR /F "tokens=2 delims=:" %%a IN ('find "Update" ^<%tempdir%\Restore4.txt') DO SET update=%%a 
+FOR /F "tokens=2 delims=:" %%a IN ('find "Update" ^<%tempdir%\Restore4.txt') DO set update=%%a 
 
-FOR /F "tokens=2 delims=:" %%a IN ('find "Update" ^<%tempdir%\Restore4.txt') DO SET updateishere=yes
+FOR /F "tokens=2 delims=:" %%a IN ('find "Update" ^<%tempdir%\Restore4.txt') DO set updateishere=yes
 
 :: checking ramdisk numbers!!!
 
@@ -618,7 +615,7 @@ echo bgcolor 0 0 0 >>%tempdir%\all.txt
 
 echo go fbecho iKeyHelper v%version% by Callum Jones ^<cj@icj.me^> >>%tempdir%\all.txt
 echo go fbecho ========================================>>%tempdir%\all.txt
-echo go fbecho - Loading iOS %ipswversion%%MarketingVersiontitle% (%BuildNumber%) >>%tempdir%\all.txt 
+echo go fbecho - Loading iOS %ProductVersion%%MarketingVersiontitle% (%BuildNumber%) >>%tempdir%\all.txt 
 echo go fbecho ^> for %ProductType% (%url_parsing_device%) >>%tempdir%\all.txt 
 echo go fbecho ========================================>>%tempdir%\all.txt
 
@@ -716,7 +713,7 @@ if "%ERRORLEVEL%"=="0" (
 goto dfucheck
 
 :dfucheck
-%tools%\irecovery.exe -c | find /I /N "DFU">NUL
+%tools%\irecovery.exe -c | find /I /N "DFU">> %logme%
 
 if "%ERRORLEVEL%"=="0" (
 	echo Found device^^!
@@ -728,8 +725,8 @@ if "%ERRORLEVEL%"=="0" (
 )
 
 :found-recovery
-call %tools%\irecovery.exe -c "setenv boot-args 2" >nul
-call %tools%\irecovery.exe -c "saveenv" >nul
+call %tools%\irecovery.exe -c "setenv boot-args 2" >> %logme%
+call %tools%\irecovery.exe -c "saveenv" >> %logme%
 
 call :log info Extracting RootFS
 start /B "" %tools%\7za.exe e -o%tempdir%\IPSW -mmt %IPSW% %rootfilesystem% >NUL
@@ -741,7 +738,7 @@ CALL :log info Starting Injectpois0n.
 <nul set /p "= - Running injectpois0n... "
 call %tools%\injectpois0n.exe -2 >> %logdir%\%timestamp% 2>NUL
 CALL :log info Injectpois0n finished.
-if exist %tempdir%\iBSS* del %tempdir%\iBSS* /S /Q >NUL
+if exist %tempdir%\iBSS* del %tempdir%\iBSS* /S /Q >> %logme%
 echo Done^^!
 
 goto elsewhere
@@ -750,7 +747,7 @@ goto elsewhere
 
 :: run irecovery -s to get rid of unneeded junk :)
 
-start /B %tools%\irecovery -s >nul
+start /B %tools%\irecovery -s >> %logme%
 ping localhost -n 5 >nul
 taskkill /F /IM "irecovery.exe" 2>NUL >nul
 cd %tempdir%\IPSW\
@@ -767,7 +764,7 @@ if "%ERRORLEVEL%"=="0" (
 cd %tempdir%
 
 <nul set /p "= - Getting keys... "
-%tools%\irecovery -s gp-keys.txt < all.txt >> %logdir%\%timestamp%
+%tools%\irecovery -s gp-keys.txt < all.txt >> %logme%
 
 cd %tempdir%\IPSW\
 
@@ -784,9 +781,9 @@ if "%ERRORLEVEL%"=="0" (
 
 CALL :log info Rebooting Device. 
 <nul set /p "= Rebooting... "
-%tools%\irecovery -c "setenv auto-boot true" >nul
-%tools%\irecovery -c "saveenv" >nul
-%tools%\irecovery -c "reboot" >nul
+%tools%\irecovery -c "setenv auto-boot true" >> %logme%
+%tools%\irecovery -c "saveenv" >> %logme%
+%tools%\irecovery -c "reboot" >> %logme%
 
 
 echo Done^^!
@@ -846,7 +843,7 @@ goto back-to-me
 
 if %boardid%==n94 (
 	echo - Extracting RootFS...
-	%tools%\7za.exe e -o%tempdir%\IPSW -mmt %IPSW% %rootfilesystem% >NUL
+	%tools%\7za.exe e -o%tempdir%\IPSW -mmt %IPSW% %rootfilesystem% >> %logme%
 )
 
 if not exist %tempdir%\decrypted mkdir %tempdir%\decrypted\ >NUL
@@ -969,11 +966,10 @@ goto noipadbb
 :: i'm sure there's a reason behind this but at the moment it looks absolutely stupid.
 echo . >NUL
 
-:: get url for firmware
 pushd %temp%\iKeyHelper
 
+:: get url for firmware
 %tools%\curl -A "iKeyHelper - %uuid% - %version%" --silent http://api.ios.icj.me/v2/%boardid%ap/%BuildNumber%/url >url.txt
-
 
 set /p downloadurl=<url.txt
 
@@ -992,18 +988,18 @@ echo.>>iphonewikikeys.txt
 
 echo {{keys>>iphonewikikeys.txt
 
-if not "%marketingversion%"=="" (
+if not %MarketingVersion%==%ProductVersion% (
 	if not "%downloadurl%"=="" (
-		echo  ^| version             = %ipswversion% ^(%MarketingVersion%^)>>iphonewikikeys.txt
+		echo  ^| version             = %ProductVersion% ^(%MarketingVersion%^)>>iphonewikikeys.txt
 	) else (
-		echo  ^| version             = %ipswversion% ^(%MarketingVersion%^) b[number]>>iphonewikikeys.txt
+		echo  ^| version             = %ProductVersion% ^(%MarketingVersion%^) b[number]>>iphonewikikeys.txt
 	)
 	
 ) else (
 	if not "%downloadurl%"=="" (
-		echo  ^| version             = %ipswversion%>>iphonewikikeys.txt
+		echo  ^| version             = %ProductVersion%>>iphonewikikeys.txt
 	) else (
-		echo  ^| version             = %ipswversion%b[number]>>iphonewikikeys.txt
+		echo  ^| version             = %ProductVersion%b[number]>>iphonewikikeys.txt
 	)
 )
 
@@ -1179,7 +1175,7 @@ move /y %MYFILES%\Template.plist.txt %tempdir%\Template.plist.txt >nul
 %tools%\ssr.exe 0 "[BatteryLow1IV]" "%iv9%" %tempdir%\Template.plist.txt
 %tools%\ssr.exe 0 "[BatteryLow1Key]" "%key9%" %tempdir%\Template.plist.txt
 
-%tools%\ssr.exe 0 "[FirmwareVersion]" "%ipswversion%" %tempdir%\Template.plist.txt
+%tools%\ssr.exe 0 "[FirmwareVersion]" "%ProductVersion%" %tempdir%\Template.plist.txt
 %tools%\ssr.exe 0 "[FirmwareURL]" "%downloadurl%" %tempdir%\Template.plist.txt
 %tools%\ssr.exe 0 "[BuildID]" "%BuildNumber%" %tempdir%\Template.plist.txt
 %tools%\ssr.exe 0 "[BuildTrain]" "%BuildTrain%" %tempdir%\Template.plist.txt
@@ -1275,7 +1271,7 @@ echo Done^^!
 
 
 cd %tempdir%
-if exist *.bundle rmdir *.bundle /S /Q >NUL
+if exist *.bundle rmdir *.bundle /S /Q >> %logme%
 mkdir "%ipswname%.bundle" >NUL
 mkdir "%ipswname%.bundle\to-patch" >NUL
 if exist decrypted\Info.plist move /y decrypted\Info.plist "%ipswname%.bundle\Info.plist" >NUL
@@ -1347,6 +1343,7 @@ if exist IPSW\ rmdir IPSW /S /Q >nul
 if exist rmdir kbags /S /Q >nul
 del %tempdir%\*.txt /S /Q >NUL
 
+
 exit
 
 ::---------------------------------------------------------------------------
@@ -1369,16 +1366,16 @@ goto :EOF
 
 
 :DeQuote
-SET _DeQuoteVar=%1
-CALL SET _DeQuoteString=%%!_DeQuoteVar!%%
+set _DeQuoteVar=%1
+CALL set _DeQuoteString=%%!_DeQuoteVar!%%
 IF [!_DeQuoteString:~0^,1!]==[^"] (
 IF [!_DeQuoteString:~-1!]==[^"] (
-SET _DeQuoteString=!_DeQuoteString:~1,-1!
+set _DeQuoteString=!_DeQuoteString:~1,-1!
 ) ELSE (GOTO :EOF)
 ) ELSE (GOTO :EOF)
-SET !_DeQuoteVar!=!_DeQuoteString!
-SET _DeQuoteVar=
-SET _DeQuoteString=
+set !_DeQuoteVar!=!_DeQuoteString!
+set _DeQuoteVar=
+set _DeQuoteString=
 GOTO :EOF
 
 :sfn
@@ -1392,12 +1389,13 @@ goto :eof
 :: log messages
 
 if not exist %logdir% mkdir %logdir% >NUL
-
+set logme=%logdir%\%timestamp%
+set timestamp=iKeyHelper_%version%.log
 if not .%1.==.. (
 	if %1==error (
-		echo [%time:~0,8%] [ERROR] %2 %3 %4 %5 %6 %7 %8 %9  >> %logdir%\%timestamp%
+		echo [%time:~0,8%] [ERROR] %2 %3 %4 %5 %6 %7 %8 %9  >> %logme%
 	) else if %1==info (
-		echo [%time:~0,8%] [INFO] %2 %3 %4 %5 %6 %7 %8 %9 >> %logdir%\%timestamp%
+		echo [%time:~0,8%] [INFO] %2 %3 %4 %5 %6 %7 %8 %9 >> %logme%
 	)
 ) else (
 	echo Usage: log ^<info/error^>
@@ -1408,18 +1406,16 @@ goto eof
 :: parse.bat - pretty epic really.
 
 :parse
-setlocal
-set plist=
-set string=
-set data=
-set data1=
-set thedata=
+if exist %temp%\plistparse\ rmdir %temp%\plistparse /S /Q 
+
 
 if %1.==. goto plistparseusage
 if %2.==. goto plistparseusage
 
 set plist=%~f1
 set string=%2
+
+::echo You want me to parse "%string%" from "%plist%".
 
 :: delete temp files
 
@@ -1433,7 +1429,7 @@ if not exist %temp%\plistparse\ mkdir %temp%\plistparse >NUL
 
 %tools%\ssr.exe 0 "<key>%string%</key><string>" "/SSR_NL/%string%:" %temp%\plistparse\tmp2 >NUL
 
-FOR /F "tokens=2 delims=:" %%a IN ('find "%string%" ^<%temp%\plistparse\tmp2') DO SET data1=%%a 
+FOR /F "tokens=2 delims=:" %%a IN ('find "%string%" ^<%temp%\plistparse\tmp2') DO set data1=%%a 
 
 echo %data1% >%temp%\plistparse\tmp3
 
@@ -1443,24 +1439,19 @@ set data=
 
 %tools%\binmay.exe -i %temp%\plistparse\tmp3 -o %temp%\plistparse\tmp4 -s 20 20 20 2>NUL
 
-for /f "tokens=* delims= " %%a in (%temp%\plistparse\tmp4) do (
+set /p data=<%temp%\plistparse\tmp4
 
-	set /a e+=1
-	set thedata!e!=%%a
-
-)
-
-set data=%thedata1%
 
 if "%data%"=="ECHOisoff." (
 	set errorlevel=1
 ) else (
-
-
-echo %data%
+	if "%3"=="echo" (
+		echo %data%
+	)
+	set %string%=%data%
 )
-if exist %temp%\plistparse\ rmdir %temp%\plistparse /S /Q >NUL
-endlocal
+if exist %temp%\plistparse\ rmdir %temp%\plistparse /S /Q >> %logme%
+
 goto eof
 
 :plistparseusage
@@ -1469,6 +1460,53 @@ echo usage: %0 ^<plist file^> ^<string^>
 echo.
 goto eof
 
-:eof
+:tolowercase
+:: thanks to http://www.robvanderwoude.com/battech_convertcase.php
+set %~1=!%1:A=a!
+set %~1=!%1:B=b!
+set %~1=!%1:C=c!
+set %~1=!%1:D=d!
+set %~1=!%1:E=e!
+set %~1=!%1:F=f!
+set %~1=!%1:G=g!
+set %~1=!%1:H=h!
+set %~1=!%1:I=i!
+set %~1=!%1:J=j!
+set %~1=!%1:K=k!
+set %~1=!%1:L=l!
+set %~1=!%1:M=m!
+set %~1=!%1:N=n!
+set %~1=!%1:O=o!
+set %~1=!%1:P=p!
+set %~1=!%1:Q=q!
+set %~1=!%1:R=r!
+set %~1=!%1:S=s!
+set %~1=!%1:T=t!
+set %~1=!%1:U=u!
+set %~1=!%1:V=v!
+set %~1=!%1:W=w!
+set %~1=!%1:X=x!
+set %~1=!%1:Y=y!
+set %~1=!%1:Z=z!
 
-endlocal
+goto eof
+
+
+:toolcheck
+
+if not exist resources\tools\%1 (
+	if not exist %tools%\%1 (
+		call :log error tool: %1 not found
+		echo Error: %1 not found
+		pause
+	)
+) else (
+	call :log info Found tool: %1
+	if not exist "%tools%\%1" (
+		copy /y resources\tools\%1 %tools%\%1 >> %logme%
+	)
+)
+goto eof
+
+
+:eof
