@@ -28,10 +28,9 @@ if "%uuid%"=="" (
 	set uuid=iKeyHelper~git
 )
 
-call :log info ## 2>NUL >NUL
-CALL :log info #############################################################################
-CALL :log info Starting iKeyHelper v%version%
-CALL :log info #############################################################################
+call :log #############################################################################
+call :log Starting iKeyHelper v%version%
+call :log #############################################################################
 
 
 if "%uuid%"=="iKeyHelper~git" (
@@ -105,12 +104,12 @@ if not exist %appdata%\iKeyHelper\bin\genpass.exe (
 if "%viewlog%"=="yes" (
 	if exist %tools%\baretail.exe (
 		taskkill /F /IM "baretail.exe" 2>NUL >NUL
-		start "" %tools%\baretail "%logdir%\%timestamp%"
+		start "" %tools%\baretail "%logme%"
 	)
 )
 
 :: check for old files and remove them
-CALL :log info Clearing existing files
+call :log Clearing existing files
 if exist %tempdir%\kbags rmdir /S /Q %tempdir%\kbags >> %logme%
 if exist %tempdir%\IPSW rmdir /S /Q %tempdir%\IPSW >> %logme%
 if exist %tempdir%\ipad-bb rmdir /S /Q %tempdir%\ipad-bb >> %logme%
@@ -161,7 +160,7 @@ echo ___________________________________________________________________________
 :: open readme (once)
 
 if not exist %appdata%\iKeyHelper\readme.txt (
-	CALL :log info Opening ReadMe
+	call :log Opening ReadMe
 	start http://www.icj.me/iKeyHelper
 	echo read >%appdata%\iKeyHelper\readme.txt
 )
@@ -181,7 +180,7 @@ if %IPSW%=="x" (
 goto checkloop 
 
 :downloadme
-call :log info Opening IPSW downloader...
+call :log Opening IPSW downloader...
 
 cls 
 echo.
@@ -204,9 +203,6 @@ set /P dldevice=- Device: %=%
 echo - Which firmware do you wish to download? (e.g. 5.0.1)
 set /P dlfw=- Firmware: %=%
 
-:: echo - What is the BuildID of this firmware? (e.g. 9A405)
-
-:: set /P dlid=- BuildID: %=%
 
 if exist %tempdir%\dlipsw rmdir %tempdir%\dlipsw >NUL
 if not exist %tempdir%\dlipsw mkdir %tempdir%\dlipsw >NUL
@@ -259,15 +255,15 @@ if errorlevel 1 (
 
 
 %tools%\curl -A "iKeyHelper - %uuid% - %version%" --silent %downloadlink%/filename>ipsw_name.txt
-
 %tools%\curl -A "iKeyHelper - %uuid% - %version%" --silent %downloadlink%/url>url.txt
 %tools%\curl -A "iKeyHelper - %uuid% - %version%" --silent %downloadlink%/filesize>filesize.txt
+
 set /p ipswName=<ipsw_name.txt
 set /p downloadlink=<url.txt
 set /p filesize=<filesize.txt
 
 echo - Downloading %ipswName%... [%filesize%MB]
-CALL :log info downloading IPSW from %downloadlink%
+call :log downloading IPSW from %downloadlink%
 
 
 echo --------------------------------------------------------------------------------
@@ -275,10 +271,10 @@ call %tools%\curl -LO %downloadlink% --progress-bar
 
 
 
-call :log info IPSW Name: %ipswName%
+call :log IPSW Name: %ipswName%
 :: check for my HDD for IPSWs :P
 if exist "G:\Apple Firmware" (
-	call :log info moving %ipswName% to "%UserProfile%\Desktop\%ipswName%"
+	call :log moving %ipswName% to "%UserProfile%\Desktop\%ipswName%"
 	if not exist "G:\Apple Firmware\%dldevice%" mkdir "G:\Apple Firmware\%dldevice%" >NUL
 	if not exist "G:\Apple Firmware\%dldevice%\Official" mkdir "G:\Apple Firmware\%dldevice%\Official" >NUL
 	move /y "%ipswName%" "G:\Apple Firmware\%dldevice%\Official\%ipswName%" >> %logme%
@@ -286,7 +282,7 @@ if exist "G:\Apple Firmware" (
 	if not exist "G:\Apple Firmware\%dldevice%\Official\%ipswName%" (
 		call :log error IPSW move failed
 	) else (
-		call :log info IPSW move succeeded
+		call :log IPSW move succeeded
 	)
 
 	set IPSW="G:\Apple Firmware\%dldevice%\Official\%ipswName%"
@@ -294,13 +290,13 @@ if exist "G:\Apple Firmware" (
 	echo - IPSW download finished^^! Saved to "G:\Apple Firmware\%dldevice%\Official\%ipswName%"
 
 ) else (
-	call :log info moving %ipswName% to "%UserProfile%\Desktop\%ipswName%"
+	call :log moving %ipswName% to "%UserProfile%\Desktop\%ipswName%"
 	move /y "%ipswName%" "%UserProfile%\Desktop\%ipswName%" >> %logme%
 
 	if not exist "%UserProfile%\Desktop\%ipswName%" (
 		call :log error IPSW move failed
 	) else (
-		call :log info IPSW move succeeded
+		call :log IPSW move succeeded
 	)
 
 	set IPSW="%UserProfile%\Desktop\%ipswName%"
@@ -332,7 +328,7 @@ set starttime=%time%
 :: create userside directory
 if not exist "%bundledir%" (
 	mkdir "%bundledir%" >NUL
-	CALL :log info Making directory: %bundledir%
+	call :log Making directory: %bundledir%
 )
 
 :: check whether this is infact an IPSW...
@@ -349,18 +345,12 @@ if not "%ERRORLEVEL%"=="0" (
 :: get the short file name of the IPSW.
 call :sfn %IPSW%
 
-:: clear boardid
-set boardid=
-
 <nul set /p "= - Extracting Files... "
 
 cd %tempdir%
 
-if exist %tempdir%\temp.txt del %tempdir%\temp.txt /S /Q >NUL
-if exist %tempdir%\sha1.txt del %tempdir%\sha1.txt /S /Q >NUL
-
 :: extract ipsw except RootFS and Ramdisks
-CALL :log info Unzipping %IPSW%...
+call :log Unzipping %IPSW%...
 call %tools%\7za.exe e -oIPSW -mmt %IPSW% kernel* Firmware/* *.plist >> %logme%
 
 echo Done^^!
@@ -393,12 +383,12 @@ for %%a in (%IPSW%) do (
 	set /a sizeofipsw=%%~za / 1048576
 )
 
-CALL :log info %shortipsw% size: %sizeofipsw%MB
+call :log %shortipsw% size: %sizeofipsw%MB
 
 set bdid=%ProductType:,=%
 call :tolowercase %bdid%
 
-CALL :log info Getting Device Definitions...
+call :log Getting Device Definitions...
 
 pushd %UserProfile%\iKeyHelper
 	call %tools%\curl -LO --silent https://github.com/cj123/iKeyHelper/raw/master/resources/device_definitions.bat >> %logme%
@@ -409,7 +399,7 @@ call %UserProfile%\iKeyHelper\device_definitions.bat %bdid%
 
 if exist %tempdir%\boardid rmdir %tempdir%\boardid /S /Q >NUL
 
-CALL :log info Device recognized as %deviceid%
+call :log Device recognized as %deviceid%
 
 title iKeyHelper v%version% running %deviceid%, iOS %ProductVersion%%MarketingVersiontitle% (%BuildNumber%) - (c) 2012 cj 
 
@@ -417,15 +407,12 @@ title iKeyHelper v%version% running %deviceid%, iOS %ProductVersion%%MarketingVe
 if exist checkme.txt del checkme.txt /S /Q >NUL
 if exist temp.txt del temp.txt /S /Q >NUL
 echo %shortipsw% >checkme.txt
-%tools%\ssr.exe 0 "_Restore.ipsw" "" checkme.txt >NUL
-move checkme.txt temp.txt >NUL
-%tools%\binmay.exe -i temp.txt -o checkme.txt -s 20 0D 0A 2>NUL
-if exist temp.txt del temp.txt /S /Q >NUL
-set /P ipswname=<checkme.txt
-if exist checkme.txt del checkme.txt
+
+set ipswname=%shortipsw:_Restore.ipsw=%
+set ipswname=%ipswname: =%
 
 :: baseband version detection
-call :log info Detecting Baseband version 
+call :log Detecting Baseband version 
 
 pushd %tempdir%\IPSW
 
@@ -452,7 +439,7 @@ if %boardid%==n90 (
 	:: yay a fun bit
 	FOR /F "tokens=2 delims=:" %%a IN ('find "Baseband" ^<baseband.txt') DO set baseband=%%a 
 ) else (
-	call :log info This device does not have a baseband^^! [or-baseband-detection-is-not-supported]
+	call :log This device does not have a baseband^^! [or-baseband-detection-is-not-supported]
 	set baseband=
 )
 popd 
@@ -486,14 +473,14 @@ for /F "tokens=2 delims=: " %%v in ('%tools%\ideviceinfo.exe ^| findstr "Product
 	
 if "%ERRORLEVEL%"=="1" (
 	echo Found device^^!
-	CALL :log info Device found in NORMAL mode.
+	call :log Device found in NORMAL mode.
 ) else (
 	ping localhost -n 6 >nul
 	CALL :log error No NORMAL device found. Rechecking...
 	goto devicecheck
 )
-call :log info if not "%detectedDevice%"=="%boardid%ap"
-call :log info Device is %detectedDevice%.
+call :log if not "%detectedDevice%"=="%boardid%ap"
+call :log Device is %detectedDevice%.
 if /I not "%detectedDevice%"=="%boardid%ap" (
 	echo -^^!- Error: You have not plugged in a %deviceid%^^! This is an %detectedID%.
 	echo - Press any key to return to main screen...
@@ -576,42 +563,43 @@ FOR /F "tokens=2 delims=:" %%a IN ('find "Update" ^<%tempdir%\Restore4.txt') DO 
 FOR /F "tokens=2 delims=:" %%a IN ('find "Update" ^<%tempdir%\Restore4.txt') DO set updateishere=yes
 
 :: checking ramdisk numbers!!!
+set update=%update: =%
+set restore=%restore: =%
+set rootfilesystem=%rootfilesystem: =%
 
 if "%updateishere%"=="yes" (
-	echo %update% > dmgs.txt
+	echo %update%> dmgs.txt
 	set updateishere=yes
 )
 
-echo %restore% >> dmgs.txt
-echo %rootfilesystem% >> dmgs.txt
+echo %restore%>> dmgs.txt
+echo %rootfilesystem%>> dmgs.txt
 
-%tools%\binmay.exe -i %tempdir%\IPSW\dmgs.txt -o %tempdir%\IPSW\dmgs-f.txt -s 20 20 20 2>NUL
-ping -n 3 localhost >NUL
-for /f "tokens=* delims= " %%a in (%tempdir%\IPSW\dmgs-f.txt) do (
-	set /a n+=1
-	set ramdisk!n!=%%a
-)
+::%tools%\binmay.exe -i %tempdir%\IPSW\dmgs.txt -o %tempdir%\IPSW\dmgs-f.txt -s 20 20 20 2>NUL
+::ping -n 3 localhost >NUL
+REM for /f "tokens=* delims= " %%a in (%tempdir%\IPSW\dmgs.txt) do (
+	REM set /a n+=1
+	REM set ramdisk!n!=%%a
+REM )
 
-if not "%updateishere%"=="yes" (
-	CALL :log error No Update Ramdisk. Continuing...
-	set restore=%ramdisk1%
-	set rootfilesystem=%ramdisk2%
-) else (
-    :: assume all 3 ramdisks are there. 
-	set update=%ramdisk1%
-	set restore=%ramdisk2%
-	set rootfilesystem=%ramdisk3%
-)
+REM if not "%updateishere%"=="yes" (
+	REM CALL :log error No Update Ramdisk. Continuing...
+	REM set restore=%ramdisk1%
+	REM set rootfilesystem=%ramdisk2%
+REM ) else (
+    REM :: assume all 3 ramdisks are there. 
+	REM set update=%ramdisk1%
+	REM set restore=%ramdisk2%
+	REM set rootfilesystem=%ramdisk3%
+REM )
 echo Done^^!
 
-CALL :log info Ramdisks-Update-%update%-Restore-%restore%-Rootfs-%rootfilesystem%
+call :log Ramdisks-Update-%update%-Restore-%restore%-Rootfs-%rootfilesystem%
 
 %tools%\7za.exe e -o%tempdir%\IPSW -mmt %IPSW% %update% %restore% >> %logdir%\%timestamp%
 
 
 echo bgcolor 0 0 0 >>%tempdir%\all.txt 
-:: speed it up for me
-
 
 echo go fbecho iKeyHelper v%version% by Callum Jones ^<cj@icj.me^> >>%tempdir%\all.txt
 echo go fbecho ========================================>>%tempdir%\all.txt
@@ -620,9 +608,9 @@ echo go fbecho ^> for %ProductType% (%url_parsing_device%) >>%tempdir%\all.txt
 echo go fbecho ========================================>>%tempdir%\all.txt
 
 if exist *.txt del *.txt /S /Q >NUL
-if exist asr* del asr* /S /Q >NUL
+if exist *asr del *asr /S /Q >NUL
 
-CALL :log info Getting KBAGs...
+call :log Getting KBAGs...
 :: delete the files
 
 if exist %tempdir%\Restore.txt del %tempdir%\Restore.txt /S /Q >NUL
@@ -653,36 +641,42 @@ call :grabkbag %kernel% >>%tempdir%\all.txt
 pushd %tempdir%\IPSW\
 :: run this TWICE.
 if exist %tempdir%\IPSW\%restore% (
-	%tools%\xpwntool.exe %tempdir%\IPSW\%restore% %tempdir%\IPSW\%restore%-1.dmg >NUL 2>NUL
-	%tools%\hfsplus %tempdir%\IPSW\%restore%-1.dmg extract /usr/sbin/asr asr-test2 >NUL 2>NUL
-	if not exist asr-test2 ( 
+	%tools%\xpwntool.exe %tempdir%\IPSW\%restore% %tempdir%\IPSW\%restore%.dec >NUL 2>NUL
+	%tools%\hfsplus %tempdir%\IPSW\%restore%.dec extract /usr/sbin/asr %restore:~0,-4%_asr >NUL 2>NUL
+	if not exist %restore:~0,-4%_asr ( 
 		::echo doing RESTORE
 		set restoreenc=y
-		call :log info Restore is encrypted
+		call :log Restore is encrypted
 		call :grabkbag %restore% >>%tempdir%\all.txt
 	) else (
 		set restoreenc=n
-		call :log info Restore not encrypted
+		call :log Restore not encrypted
 		echo go echo %restore% >>%tempdir%\all.txt
 		echo go echo *Not_Encrypted >>%tempdir%\all.txt
 	)
 )
 
 if "%updateishere%"=="yes" (
-	%tools%\xpwntool.exe %tempdir%\IPSW\%update% %tempdir%\IPSW\%update%-1.dmg >NUL 2>NUL
-	%tools%\hfsplus %tempdir%\IPSW\%update%-1.dmg extract /usr/sbin/asr asr-test1 >NUL 2>NUL
-	if not exist asr-test1 (
+	%tools%\xpwntool.exe %tempdir%\IPSW\%update% %tempdir%\IPSW\%update%.dec >NUL 2>NUL
+	%tools%\hfsplus %tempdir%\IPSW\%update%.dec extract /usr/sbin/asr %update:~0,-4%_asr >NUL 2>NUL
+	if not exist %update:~0,-4%_asr (
 		::echo DOING UPDATE
 		set updateenc=y
-		call :log info Update is encrypted
+		call :log Update is encrypted
 		call :grabkbag %update% >>%tempdir%\all.txt
 	) else (
 		set updateenc=n
-		call :log info Update is not encrypted
+		call :log Update is not encrypted
 		echo go echo %update% >>%tempdir%\all.txt
 		echo go echo *Not_Encrypted >>%tempdir%\all.txt
 	)
 )
+
+:: remove files
+if exist %update:~0,-4%_asr del %update:~0,-4%_asr /S /Q >NUL
+if exist %restore:~0,-4%_asr del %restore:~0,-4%_asr /S /Q >NUL
+if exist %update%.dec del %update%.dec /S /Q >NUL
+if exist %restore%.dec del %restore%.dec /S /Q >NUL
 
 popd
 
@@ -717,7 +711,7 @@ goto dfucheck
 
 if "%ERRORLEVEL%"=="0" (
 	echo Found device^^!
-	CALL :log info Device found in DFU mode.
+	call :log Device found in DFU mode.
 ) else (
 	ping localhost -n 6 >nul
 	CALL :log error No DFU device found. Rechecking...
@@ -728,16 +722,16 @@ if "%ERRORLEVEL%"=="0" (
 call %tools%\irecovery.exe -c "setenv boot-args 2" >> %logme%
 call %tools%\irecovery.exe -c "saveenv" >> %logme%
 
-call :log info Extracting RootFS
+call :log Extracting RootFS
 start /B "" %tools%\7za.exe e -o%tempdir%\IPSW -mmt %IPSW% %rootfilesystem% >NUL
 
 cd %tempdir%
 
 :: injectpois0n
-CALL :log info Starting Injectpois0n.
+call :log Starting Injectpois0n.
 <nul set /p "= - Running injectpois0n... "
 call %tools%\injectpois0n.exe -2 >> %logdir%\%timestamp% 2>NUL
-CALL :log info Injectpois0n finished.
+call :log Injectpois0n finished.
 if exist %tempdir%\iBSS* del %tempdir%\iBSS* /S /Q >> %logme%
 echo Done^^!
 
@@ -779,7 +773,7 @@ if "%ERRORLEVEL%"=="0" (
 
 :: reboot 
 
-CALL :log info Rebooting Device. 
+call :log Rebooting Device. 
 <nul set /p "= Rebooting... "
 %tools%\irecovery -c "setenv auto-boot true" >> %logme%
 %tools%\irecovery -c "saveenv" >> %logme%
@@ -788,7 +782,7 @@ CALL :log info Rebooting Device.
 
 echo Done^^!
 
-CALL :log info formatting text file.
+call :log formatting text file.
 pushd %tempdir%
 
 %tools%\binmay.exe -i gp-keys.txt -o keys.txt -s 00 2>NUL
@@ -853,7 +847,7 @@ cd %tempdir%
 if exist %tempdir%\decrypted\%update%.dec del %tempdir%\decrypted\%update%.dec /S /Q >NUL
 if exist %tempdir%\decrypted\%restore%.dec del %tempdir%\decrypted\%restore%.dec /S /Q >NUL
 
-CALL :log info Update Ramdisk Shiz
+call :log Update Ramdisk Shiz
 if not "%update%"=="" (
 	if not "%updateenc%"=="n" (
 		%tools%\xpwntool %tempdir%\IPSW\%update% %tempdir%\decrypted\%update%.dec -iv %iv19% -k %key19% >NUL
@@ -861,7 +855,7 @@ if not "%update%"=="" (
 		%tools%\xpwntool %tempdir%\IPSW\%update% %tempdir%\decrypted\%update%.dec >NUL
 	)
 )
-CALL :log info Restore Ramdisk Shiz
+call :log Restore Ramdisk Shiz
 if not "%restore%"=="" (
 	if not "%restoreenc%"=="n" (
 		%tools%\xpwntool %tempdir%\IPSW\%restore% %tempdir%\decrypted\%restore%.dec -iv %iv18% -k %key18% >NUL
@@ -878,11 +872,11 @@ if not exist %tempdir%\IPSW\%rootfilesystem% (
 	call :log error No RootFS extracted!
 	goto rootfs-check
 ) else (
-	call :log info Found extracted RootFS
+	call :log Found extracted RootFS
 )
 
 <nul set /p "= - Getting RootFS Key... "
-CALL :log info Getting RootFS Key using restore
+call :log Getting RootFS Key using restore
 %tools%\genpass.exe -p %platform% -r decrypted/%restore%.dec -f IPSW/%rootfilesystem% >%tempdir%\IPSW\genpass.txt 2>NUL
 
 findstr /C:"vfdecrypt key" %tempdir%\IPSW\genpass.txt >NUL
@@ -892,7 +886,7 @@ if not "%ERRORLEVEL%"=="0" (
 	%tools%\genpass.exe -p %platform% -r decrypted/%update%.dec -f IPSW/%rootfilesystem% >%tempdir%\IPSW\genpass.txt 2>NUL
 )
 
-CALL :log info Decrypting RootFS TEST
+call :log Decrypting RootFS TEST
 %tools%\dmg.exe extract %tempdir%\IPSW\%rootfilesystem% %tempdir%\decrypted\%rootfilesystem%.dec -k %rtkey% 2>decryptedcheck.txt
 
 findstr /C:"readUDIFResourceFile - signature incorrect" decryptedcheck.txt >NUL
@@ -928,7 +922,7 @@ goto noipadbb
 :ipadbb
 :: Get the baseband for iPad from ramdisk
 if exist %tempdir%\ipad-bb rmdir %tempdir%\ipad-bb /S /Q >NUL
-CALL :log info Getting iPad/3G[S] Baseband
+call :log Getting iPad/3G[S] Baseband
 if not exist %tempdir%\ipad-bb mkdir %tempdir%\ipad-bb
 
 pushd %tempdir%\ipad-bb
@@ -936,10 +930,10 @@ pushd %tempdir%\ipad-bb
 	%tools%\hfsplus "%tempdir%\decrypted\%restore%.dec" extractall /usr/local/standalone/firmware/ >NUL 2>NUL
 	:: check if its wrapped in a BBFW file
 	if exist ICE2.Release.bbfw (
-		CALL :log info BBFW EXISTS
+		call :log BBFW EXISTS
 		%tools%\7za x -y -mmt ICE2.Release.bbfw >NUL
 	) else (
-		CALL :log info BBFW NO EXISTY
+		call :log BBFW NO EXISTY
 	)
 	
 	dir /OS /B %tempdir%\ipad-bb\*.eep > %tempdir%\bb.txt 2>&1
@@ -956,7 +950,7 @@ pushd %tempdir%\ipad-bb
 			)
 		)
 	)
-	call :log info iPad/3G[S]Baseband: %baseband%
+	call :log iPad/3G[S]Baseband: %baseband%
 popd
 
 goto noipadbb
@@ -1185,7 +1179,7 @@ echo - Saved Keys and Plist files to "%bundledir%"
 
 :urlopen
 echo - Opening theiphonewiki page for %BuildTrain% %BuildNumber% (%url_parsing_device%)...
-CALL :log info Opening theiphonewiki page for %BuildTrain%_%BuildNumber% ...
+call :log Opening theiphonewiki page for %BuildTrain%_%BuildNumber% ...
 start http://theiphonewiki.com/wiki/index.php?title=%BuildTrain%_%BuildNumber%_(%deviceidw%)^&action=edit
 
 cd %tempdir%
@@ -1204,51 +1198,51 @@ pushd %tempdir%\decrypted
 
 <nul set /p "= - Decrypting other files... "
 
-CALL :log info Decrypting %applelogo%
+call :log Decrypting %applelogo%
 %tools%\xpwntool.exe %tempdir%\IPSW\%applelogo% %applelogo%.dec -iv %iv6% -k %key6% >> %logdir%\%timestamp% 
 
-CALL :log info Decrypting %LLB%
+call :log Decrypting %LLB%
 %tools%\xpwntool.exe %tempdir%\IPSW\%LLB% %LLB%.dec -iv %iv3% -k %key3% >> %logdir%\%timestamp%
 
-CALL :log info Decrypting %iBoot%
+call :log Decrypting %iBoot%
 %tools%\xpwntool.exe %tempdir%\IPSW\%iBoot% %iBoot%.dec -iv %iv4% -k %key4% >> %logdir%\%timestamp%
 
-CALL :log info Decrypting %devicetree%
+call :log Decrypting %devicetree%
 %tools%\xpwntool.exe %tempdir%\IPSW\%devicetree% %devicetree%.dec -iv %iv5% -k %key5% >> %logdir%\%timestamp%
 
-CALL :log info Decrypting %recoverymode%
+call :log Decrypting %recoverymode%
 %tools%\xpwntool.exe %tempdir%\IPSW\%recoverymode% %recoverymode%.dec -iv %iv7% -k %key7% >> %logdir%\%timestamp%
 
-CALL :log info Decrypting %batterylow0%
+call :log Decrypting %batterylow0%
 %tools%\xpwntool.exe %tempdir%\IPSW\%batterylow0% %batterylow0%.dec -iv %iv8% -k %key8% >> %logdir%\%timestamp%
 
-CALL :log info Decrypting %batterylow1%
+call :log Decrypting %batterylow1%
 %tools%\xpwntool.exe %tempdir%\IPSW\%batterylow1% %batterylow1%.dec -iv %iv9% -k %key9% >> %logdir%\%timestamp%
 
-CALL :log info Decrypting %glyphcharging%
+call :log Decrypting %glyphcharging%
 %tools%\xpwntool.exe %tempdir%\IPSW\%glyphcharging% %glyphcharging%.dec -iv %iv10% -k %key10% >> %logdir%\%timestamp%
 
-CALL :log info Decrypting %glyphplugin%
+call :log Decrypting %glyphplugin%
 %tools%\xpwntool.exe %tempdir%\IPSW\%glyphplugin% %glyphplugin%.dec -iv %iv11% -k %key11% >> %logdir%\%timestamp%
 
-CALL :log info Decrypting %batterycharging0%
+call :log Decrypting %batterycharging0%
 %tools%\xpwntool.exe %tempdir%\IPSW\%batterycharging0% %batterycharging0%.dec -iv %iv12% -k %key12% >> %logdir%\%timestamp%
 
-CALL :log info Decrypting %batterycharging1%
+call :log Decrypting %batterycharging1%
 %tools%\xpwntool.exe %tempdir%\IPSW\%batterycharging1% %batterycharging1%.dec -iv %iv13% -k %key13% >> %logdir%\%timestamp%
 
-CALL :log info NOT Decrypting %batteryfull%
+call :log NOT Decrypting %batteryfull%
 
 :: This doesn't work, and I don't care why.
 :: %tools%\xpwntool.exe %tempdir%\IPSW\%batteryfull% %batteryfull%.dec -iv %iv14% -k %key14% >> %logdir%\%timestamp%
 
-CALL :log info Decrypting %ibss%
+call :log Decrypting %ibss%
 %tools%\xpwntool.exe %tempdir%\IPSW\%ibss% %ibss%.dec -iv %iv15% -k %key15% >> %logdir%\%timestamp%
 
-CALL :log info Decrypting %ibec%
+call :log Decrypting %ibec%
 %tools%\xpwntool.exe %tempdir%\IPSW\%ibec% %ibec%.dec -iv %iv16% -k %key16% >> %logdir%\%timestamp%
 
-CALL :log info Decrypting %kernel%
+call :log Decrypting %kernel%
 %tools%\xpwntool.exe %tempdir%\IPSW\%kernel% %kernel%.dec -iv %iv17% -k %key17% >> %logdir%\%timestamp%
 
 echo Done^^!
@@ -1256,17 +1250,17 @@ echo Done^^!
 popd
 
 <nul set /p "= - Extracting files from DMGs... "
-CALL :log info Extracting files from the DMGs
+call :log Extracting files from the DMGs
 if not "%rtkey%"=="" (
 	%tools%\hfsplus %tempdir%\decrypted\%rootfilesystem%.dec extract /etc/fstab %tempdir%\decrypted\fstab >NUL
-	CALL :log info - fstab
+	call :log - fstab
 	%tools%\hfsplus %tempdir%\decrypted\%rootfilesystem%.dec extract /System/Library/Lockdown/Services.plist %tempdir%\decrypted\Services.plist >NUL
-	CALL :log info - Services.plist
+	call :log - Services.plist
 	%tools%\hfsplus %tempdir%\decrypted\%rootfilesystem%.dec extract /usr/libexec/lockdownd %tempdir%\decrypted\lockdownd
-	CALL :log info - lockdownd
+	call :log - lockdownd
 )
 %tools%\hfsplus %tempdir%\decrypted\%restore%.dec extract /usr/sbin/asr %tempdir%\decrypted\asr >NUL
-CALL :log info - asr
+call :log - asr
 echo Done^^!
 
 
@@ -1316,8 +1310,8 @@ set /a tot=%secs%+%mins%cmdln%60+%hrs%cmdln%3600 >NUL 2>NUL
 
 echo - Took %hrs% hours, %mins% mins and %secs% seconds to complete^^! 
 
-CALL :log info Finished.
-CALL :log info ----------------------------------------------------------------------------------------------
+call :log Finished.
+call :log ----------------------------------------------------------------------------------------------
 
 echo - Press any key to exit..
 echo ran > %tempdir%\finished.Done
@@ -1367,16 +1361,16 @@ goto :EOF
 
 :DeQuote
 set _DeQuoteVar=%1
-CALL set _DeQuoteString=%%!_DeQuoteVar!%%
-IF [!_DeQuoteString:~0^,1!]==[^"] (
-IF [!_DeQuoteString:~-1!]==[^"] (
+call set _DeQuoteString=%%!_DeQuoteVar!%%
+if [!_DeQuoteString:~0^,1!]==[^"] (
+if [!_DeQuoteString:~-1!]==[^"] (
 set _DeQuoteString=!_DeQuoteString:~1,-1!
-) ELSE (GOTO :EOF)
-) ELSE (GOTO :EOF)
+) else (goto :eof)
+) else (goto :eof)
 set !_DeQuoteVar!=!_DeQuoteString!
 set _DeQuoteVar=
 set _DeQuoteString=
-GOTO :EOF
+goto :eof
 
 :sfn
 set bundlename=%~n1.bundle
@@ -1389,16 +1383,17 @@ goto :eof
 :: log messages
 
 if not exist %logdir% mkdir %logdir% >NUL
-set logme=%logdir%\%timestamp%
 set timestamp=iKeyHelper_%version%.log
-if not .%1.==.. (
-	if %1==error (
-		echo [%time:~0,8%] [ERROR] %2 %3 %4 %5 %6 %7 %8 %9  >> %logme%
-	) else if %1==info (
-		echo [%time:~0,8%] [INFO] %2 %3 %4 %5 %6 %7 %8 %9 >> %logme%
+set logme=%logdir%\%timestamp%
+if not exist %logme% echo. >%logme%
+if not "%1"=="" (
+	if "%1"=="error" (
+		echo [%time:~0,8%] [ERROR] %2 %3 %4 %5 %6 %7 %8 %9  >>%logme%
+	) else (
+		echo [%time:~0,8%] [INFO] %1 %2 %3 %4 %5 %6 %7 %8 %9 >>%logme%
 	)
 ) else (
-	echo Usage: log ^<info/error^>
+	echo Usage: log ^[error^]
 )
 
 goto eof
@@ -1501,7 +1496,7 @@ if not exist resources\tools\%1 (
 		pause
 	)
 ) else (
-	call :log info Found tool: %1
+	call :log Found tool: %1
 	if not exist "%tools%\%1" (
 		copy /y resources\tools\%1 %tools%\%1 >> %logme%
 	)
