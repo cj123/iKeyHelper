@@ -115,7 +115,7 @@ if exist %tempdir%\IPSW rmdir /S /Q %tempdir%\IPSW >> %logme%
 if exist %tempdir%\ipad-bb rmdir /S /Q %tempdir%\ipad-bb >> %logme%
 if exist %tempdir%\dlipsw rmdir /S /Q %tempdir%\dlipsw >> %logme%
 if exist %tempdir%\keys.txt del /S /Q if exist %tempdir%\keys.txt >> %logme%
-if exist %tempdir%\all.txt del /S /Q %tempdir%\all.txt >> %logme%
+if exist %tempdir%\kbags.txt del /S /Q %tempdir%\kbags.txt >> %logme%
 cls	
 
 goto top
@@ -161,7 +161,7 @@ echo ___________________________________________________________________________
 
 if not exist %appdata%\iKeyHelper\readme.txt (
 	call :log Opening ReadMe
-	start http://www.icj.me/iKeyHelper
+	start 'http://www.icj.me/iKeyHelper'
 	echo read >%appdata%\iKeyHelper\readme.txt
 )
 
@@ -404,10 +404,6 @@ call :log Device recognized as %deviceid%
 title iKeyHelper v%version% running %deviceid%, iOS %ProductVersion%%MarketingVersiontitle% (%BuildNumber%) - (c) 2012 cj 
 
 :: ipsw name
-if exist checkme.txt del checkme.txt /S /Q >NUL
-if exist temp.txt del temp.txt /S /Q >NUL
-echo %shortipsw% >checkme.txt
-
 set ipswname=%shortipsw:_Restore.ipsw=%
 set ipswname=%ipswname: =%
 
@@ -418,19 +414,25 @@ pushd %tempdir%\IPSW
 
 if exist baseband.txt del baseband.txt /S /Q >NUL
 
-if %boardid%==n90 (
+if "%boardid%"=="n90" (
 	dir /B /OS *.Release.bbfw >>baseband.txt
 	%tools%\ssr.exe 0 "ICE3_" "Baseband:" baseband.txt
 	%tools%\ssr.exe 0 "_BOOT_" /SSR_NL/ baseband.txt
 	:: yay a fun bit
 	FOR /F "tokens=2 delims=:" %%a IN ('find "Baseband" ^<baseband.txt') DO set baseband=%%a 
-) else if %boardid%==n94 (
+) else if "%boardid%"=="n90b" (
+	dir /B /OS *.Release.bbfw >>baseband.txt
+	%tools%\ssr.exe 0 "ICE3_" "Baseband:" baseband.txt
+	%tools%\ssr.exe 0 "_BOOT_" /SSR_NL/ baseband.txt
+	:: yay a fun bit
+	FOR /F "tokens=2 delims=:" %%a IN ('find "Baseband" ^<baseband.txt') DO set baseband=%%a 
+) else if "%boardid%"=="n94" (
 	dir /B /OS Trek-*.Release.bbfw >>baseband.txt
 	%tools%\ssr.exe 0 "Trek-" "Baseband:" baseband.txt
 	%tools%\ssr.exe 0 ".Release.bbfw" /SSR_NL/ baseband.txt
 	:: yay a fun bit
 	FOR /F "tokens=2 delims=:" %%a IN ('find "Baseband" ^<baseband.txt') DO set baseband=%%a 
-) else if %boardid%==n92 (
+) else if "%boardid%"=="n92" (
 	:: should be Phoenix-VE.RS.ION.Release.bbfw ?
 	::del Phoenix* /S /Q >NUL 2>NUL
 	dir /B /OS *.Release.bbfw >>baseband.txt
@@ -446,6 +448,8 @@ popd
 if "%boardid%"=="n90" ( 
 	echo - Baseband %baseband%
 ) else if "%boardid%"=="n92" ( 
+	echo - Baseband %baseband%
+) else if "%boardid%"=="n90b" ( 
 	echo - Baseband %baseband%
 ) else (
 	REM yes this is important
@@ -562,6 +566,8 @@ FOR /F "tokens=2 delims=:" %%a IN ('find "Update" ^<%tempdir%\Restore4.txt') DO 
 
 FOR /F "tokens=2 delims=:" %%a IN ('find "Update" ^<%tempdir%\Restore4.txt') DO set updateishere=yes
 
+if exist %tempdir%\Restore4.txt del %tempdir%\Restore4.txt /S /Q >NUL
+
 :: checking ramdisk numbers!!!
 set update=%update: =%
 set restore=%restore: =%
@@ -599,13 +605,13 @@ call :log Ramdisks-Update-%update%-Restore-%restore%-Rootfs-%rootfilesystem%
 %tools%\7za.exe e -o%tempdir%\IPSW -mmt %IPSW% %update% %restore% >> %logdir%\%timestamp%
 
 
-echo bgcolor 0 0 0 >>%tempdir%\all.txt 
+echo bgcolor 0 0 0 >>%tempdir%\kbags.txt 
 
-echo go fbecho iKeyHelper v%version% by Callum Jones ^<cj@icj.me^> >>%tempdir%\all.txt
-echo go fbecho ========================================>>%tempdir%\all.txt
-echo go fbecho - Loading iOS %ProductVersion%%MarketingVersiontitle% (%BuildNumber%) >>%tempdir%\all.txt 
-echo go fbecho ^> for %ProductType% (%url_parsing_device%) >>%tempdir%\all.txt 
-echo go fbecho ========================================>>%tempdir%\all.txt
+echo go fbecho iKeyHelper v%version% by Callum Jones ^<cj@icj.me^> >>%tempdir%\kbags.txt
+echo go fbecho ========================================>>%tempdir%\kbags.txt
+echo go fbecho - Loading iOS %ProductVersion%%MarketingVersiontitle% (%BuildNumber%) >>%tempdir%\kbags.txt 
+echo go fbecho ^> for %ProductType% (%url_parsing_device%) >>%tempdir%\kbags.txt 
+echo go fbecho ========================================>>%tempdir%\kbags.txt
 
 if exist *.txt del *.txt /S /Q >NUL
 if exist *asr del *asr /S /Q >NUL
@@ -621,21 +627,21 @@ if exist %tempdir%\Restore2.txt del %tempdir%\Restore2.txt /S /Q >NUL
 
 <nul set /p "= - Grabbing KBAGs... "
 
-call :grabkbag %LLB% >>%tempdir%\all.txt
-call :grabkbag %iBoot% >>%tempdir%\all.txt 
-call :grabkbag %devicetree% >>%tempdir%\all.txt 
-call :grabkbag %applelogo% >>%tempdir%\all.txt 
-call :grabkbag %recoverymode% >>%tempdir%\all.txt 
-call :grabkbag %batterylow0% >>%tempdir%\all.txt 
-call :grabkbag %batterylow1% >>%tempdir%\all.txt 
-call :grabkbag %glyphcharging% >>%tempdir%\all.txt 
-call :grabkbag %glyphplugin% >>%tempdir%\all.txt 
-call :grabkbag %batterycharging0% >>%tempdir%\all.txt 
-call :grabkbag %batterycharging1% >>%tempdir%\all.txt 
-call :grabkbag %batteryfull% >>%tempdir%\all.txt 
-call :grabkbag %ibss% >>%tempdir%\all.txt 
-call :grabkbag %ibec% >>%tempdir%\all.txt 
-call :grabkbag %kernel% >>%tempdir%\all.txt 
+call :grabkbag %LLB% >>%tempdir%\kbags.txt
+call :grabkbag %iBoot% >>%tempdir%\kbags.txt 
+call :grabkbag %devicetree% >>%tempdir%\kbags.txt 
+call :grabkbag %applelogo% >>%tempdir%\kbags.txt 
+call :grabkbag %recoverymode% >>%tempdir%\kbags.txt 
+call :grabkbag %batterylow0% >>%tempdir%\kbags.txt 
+call :grabkbag %batterylow1% >>%tempdir%\kbags.txt 
+call :grabkbag %glyphcharging% >>%tempdir%\kbags.txt 
+call :grabkbag %glyphplugin% >>%tempdir%\kbags.txt 
+call :grabkbag %batterycharging0% >>%tempdir%\kbags.txt 
+call :grabkbag %batterycharging1% >>%tempdir%\kbags.txt 
+call :grabkbag %batteryfull% >>%tempdir%\kbags.txt 
+call :grabkbag %ibss% >>%tempdir%\kbags.txt 
+call :grabkbag %ibec% >>%tempdir%\kbags.txt 
+call :grabkbag %kernel% >>%tempdir%\kbags.txt 
 
 
 pushd %tempdir%\IPSW\
@@ -647,12 +653,12 @@ if exist %tempdir%\IPSW\%restore% (
 		::echo doing RESTORE
 		set restoreenc=y
 		call :log Restore is encrypted
-		call :grabkbag %restore% >>%tempdir%\all.txt
+		call :grabkbag %restore% >>%tempdir%\kbags.txt
 	) else (
 		set restoreenc=n
 		call :log Restore not encrypted
-		echo go echo %restore% >>%tempdir%\all.txt
-		echo go echo *Not_Encrypted >>%tempdir%\all.txt
+		echo go echo %restore% >>%tempdir%\kbags.txt
+		echo go echo *Not_Encrypted >>%tempdir%\kbags.txt
 	)
 )
 
@@ -663,12 +669,12 @@ if "%updateishere%"=="yes" (
 		::echo DOING UPDATE
 		set updateenc=y
 		call :log Update is encrypted
-		call :grabkbag %update% >>%tempdir%\all.txt
+		call :grabkbag %update% >>%tempdir%\kbags.txt
 	) else (
 		set updateenc=n
 		call :log Update is not encrypted
-		echo go echo %update% >>%tempdir%\all.txt
-		echo go echo *Not_Encrypted >>%tempdir%\all.txt
+		echo go echo %update% >>%tempdir%\kbags.txt
+		echo go echo *Not_Encrypted >>%tempdir%\kbags.txt
 	)
 )
 
@@ -680,13 +686,13 @@ if exist %restore%.dec del %restore%.dec /S /Q >NUL
 
 popd
 
-echo go fbecho ===================================>>%tempdir%\all.txt
-echo go fbecho - Done>>%tempdir%\all.txt 
-echo go fbecho - Rebooting...>>%tempdir%\all.txt
-echo go fbecho ===================================>>%tempdir%\all.txt
+echo go fbecho ===================================>>%tempdir%\kbags.txt
+echo go fbecho - Done>>%tempdir%\kbags.txt 
+echo go fbecho - Rebooting...>>%tempdir%\kbags.txt
+echo go fbecho ===================================>>%tempdir%\kbags.txt
 
 echo Done^^!
-echo /exit >>%tempdir%\all.txt
+echo /exit >>%tempdir%\kbags.txt
 
 :: close open iTunes windows (if they exist)
 tasklist /FI "IMAGENAME eq iTunes.exe" 2>NUL | find /I /N "iTunes.exe">NUL
@@ -758,7 +764,7 @@ if "%ERRORLEVEL%"=="0" (
 cd %tempdir%
 
 <nul set /p "= - Getting keys... "
-%tools%\irecovery -s gp-keys.txt < all.txt >> %logme%
+%tools%\irecovery -s gp-keys.txt < kbags.txt >> %logme%
 
 cd %tempdir%\IPSW\
 
@@ -1355,6 +1361,8 @@ for /F "tokens=5 delims=: " %%z in ('%tools%\xpwntool.exe %filename% %temp%\iKey
 echo go fbecho - %~n1%~x1
 echo go echo %~n1%~x1
 echo go aes dec %kbag%
+
+if exist %temp%\iKeyHelper\# del %temp%\iKeyHelper\# /S /Q >NUL
 
 goto :EOF
 
