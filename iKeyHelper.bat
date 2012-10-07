@@ -151,7 +151,7 @@ CALL :log error Unable to find LibUSB. Please install it.
 ) 
 if not exist "%ProgramFiles%\iTunes\" (
 echo ^|______________________________________________________________________________^|
-echo ^|     Error: You do not have iTunes. Please install from apple.com/itunes      ^|
+echo ^|     Error: You do not have iTunes. Please install it from apple.com/itunes      ^|
 CALL :log error Unable to find iTunes. Please install it.
 ) 
 echo.
@@ -160,7 +160,7 @@ echo ___________________________________________________________________________
 :: open readme (once)
 
 if not exist %appdata%\iKeyHelper\readme.txt (
-	call :log Opening ReadMe
+	call :log Opening README
 	start 'http://www.icj.me/iKeyHelper'
 	echo read >%appdata%\iKeyHelper\readme.txt
 )
