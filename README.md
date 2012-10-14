@@ -4,6 +4,8 @@ iKeyHelper is a script for Windows to get AES keys from Apple's iOS Firmware.
 
 iKeyHelper is scripted in Batch. Its features include: formatting for TheiPhoneWiki, decryption of files, use of the Firmware Links API, baseband detection, preparation for bundle making, and much more!
 
+<img src="http://www.callumjones.me/assets/images/iKeyHelper.png" alt="iKeyHelper">
+
 ## iKeyHelper uses the following:
 
 * **XPwn** by planetbeing
