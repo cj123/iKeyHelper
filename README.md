@@ -24,3 +24,12 @@ Also, you need iTunes, libusb (and device filters installed for each mode) for i
 ## License
 
 **iKeyHelper** is licensed under the GNU GPL v3. See the LICENSE file for more information.
+
+## Credits
+
+iKeyHelper wouldn't have been possible without the following people
+
+* **iNeal** - for baseband detection and other key parts
+* **iH8sn0w** - for the non-existent iKeys which prompted the starting of this project
+* **Atarii** - for autoirecovery (a tool you never saw) - which was once at the core of iKeyHelper
+* **members of the case**
