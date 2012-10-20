@@ -161,7 +161,7 @@ echo ___________________________________________________________________________
 
 if not exist %appdata%\iKeyHelper\readme.txt (
 	call :log Opening README
-	start 'http://www.icj.me/iKeyHelper'
+	start "http://www.icj.me/iKeyHelper"
 	echo read >%appdata%\iKeyHelper\readme.txt
 )
 
