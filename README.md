@@ -6,7 +6,9 @@ iKeyHelper is scripted in Batch. Its features include: formatting for TheiPhoneW
 
 <img src="http://www.callumjones.me/assets/images/iKeyHelper.png" alt="iKeyHelper">
 
-## iKeyHelper uses the following:
+## Resources
+
+iKeyHelper uses the following:
 
 * **XPwn** by planetbeing
 * **greenpois0n** by chronic-dev
