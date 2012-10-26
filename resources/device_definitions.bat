@@ -90,6 +90,16 @@ if "%bdid%"=="" (
 	set url_parsing_device=iPhone 4 ^(Late 2012^)
 	set requiresdevice=no
 	
+) else if "%bdid%"=="iPod21" (
+
+	REM iPod Touch 2
+	set bdid=ipod21
+	set deviceid=iPod Touch 2G
+	set boardid=n72
+	set deviceidw=iPod_Touch_2G
+	set url_parsing_device=iPod Touch 2G
+	set requiresdevice=yes
+
 ) else (
 
 	REM Unknown device
