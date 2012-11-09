@@ -6,6 +6,10 @@ iKeyHelper is scripted in Batch. Its features include: formatting for TheiPhoneW
 
 <img src="http://www.callumjones.me/assets/images/iKeyHelper.png" alt="iKeyHelper">
 
+## Preparation
+
+Open iKeyHelper and allow it to unpack the tools, then when it has gone to the "IPSW" screen, run the `resources\boot-args.bat` - this will make injectpois0n halt after the payload has been run, rather than rebooting.
+
 ## Resources
 
 iKeyHelper uses the following:
