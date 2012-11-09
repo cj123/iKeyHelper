@@ -21,15 +21,15 @@ if not exist %tools%\irecovery.exe (
 
 if "%ERRORLEVEL%"=="0" (
 	echo Found device^^!
-	goto patchme
+	goto setargs
 ) else (
 	ping localhost -n 6 >nul
 	goto recoverycheck
 )
 
-:patchme
+:setargs
 
-<nul set /p "=- Patching... "
+<nul set /p "=- Setting boot args... "
 call %tools%\irecovery.exe -c "setenv boot-args 2" >nul
 call %tools%\irecovery.exe -c "saveenv" >nul
 echo Done^^!
