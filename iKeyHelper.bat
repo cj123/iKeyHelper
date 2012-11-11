@@ -29,7 +29,7 @@ if "%uuid%"=="" (
 )
 
 call :log #############################################################################
-call :log Starting iKeyHelper v%version%
+call :log Starting iKeyHelper v%version% on %date%
 call :log #############################################################################
 
 
@@ -70,7 +70,6 @@ if not exist "%UserProfile%\iKeyHelper\iKeyHelper.settings.bat" (
 		call %tools%\curl -LO https://github.com/cj123/iKeyHelper/raw/master/resources/iKeyHelper.settings.bat --progress-bar
 	popd
 )
-
 
 :: parse the settings
 call %UserProfile%\iKeyHelper\iKeyHelper.settings.bat this-is-meant-to-be-run
@@ -224,17 +223,17 @@ if errorlevel 1 (
 
 <nul set /p "= - Multiple BuildIDs Found: "
 %tools%\curl -A "iKeyHelper - %uuid% - %version%" --silent http://api.ios.icj.me/v2/%dldevice%/%dlfw%/buildid>choices.txt
+ssr 0 """ "" choices.txt
 
-:: remove some stuff, make it more prettier
-
-%tools%\ssr.exe 0 "[{''buildid'':''" "" choices.txt >NUL
-%tools%\ssr.exe 0 "''}" "" choices.txt >NUL
-%tools%\ssr.exe 0 "{''buildid'':''" " " choices.txt >NUL
-%tools%\ssr.exe 0 "]" "" choices.txt >NUL
-
-type choices.txt
+for %%a in ("choices.txt") do (
+	for /f "tokens=2 delims=:" %%B in ('find "buildid" ^< %%a') do (
+		call :addtovar %%B
+	)
+)
+echo %buildids%
 
 set /P dlid=- Choose one BuildID: %=%
+
 
 set downloadlink=http://api.ios.icj.me/v2/%dldevice%/%dlid%
 goto downloadipsw
@@ -1031,6 +1030,7 @@ if "%restoreenc%"=="n" (
 if not "%update%"=="" (
 	echo. >>iphonewikikeys.txt
 	echo  ^| updatedmg           = %update:~0,-4%>>iphonewikikeys.txt
+	
 	if not "%updateenc%"=="n" (
 		echo  ^| updateiv            = %iv19%>>iphonewikikeys.txt
 		echo  ^| updatekey           = %key19%>>iphonewikikeys.txt
@@ -1043,52 +1043,81 @@ if not "%restoreenc%"=="n" (
 	echo  ^| restoreiv           = %iv18%>>iphonewikikeys.txt
 	echo  ^| restorekey          = %key18%>>iphonewikikeys.txt
 )
-echo. >>iphonewikikeys.txt
+	echo. >>iphonewikikeys.txt
+	
 	echo  ^| AppleLogoIV         = %iv6%>>iphonewikikeys.txt
 	echo  ^| AppleLogoKey        = %key6%>>iphonewikikeys.txt
-echo. >>iphonewikikeys.txt
+	
+	echo. >>iphonewikikeys.txt
+	
 	echo  ^| BatteryCharging0IV  = %iv12%>>iphonewikikeys.txt
-	echo  ^| BatteryCharging0Key = %key12%>>iphonewikikeys.txt	
-echo. >>iphonewikikeys.txt	
+	echo  ^| BatteryCharging0Key = %key12%>>iphonewikikeys.txt
+	
+	echo. >>iphonewikikeys.txt
+	
 	echo  ^| BatteryCharging1IV  = %iv13%>>iphonewikikeys.txt
 	echo  ^| BatteryCharging1Key = %key13%>>iphonewikikeys.txt
-echo. >>iphonewikikeys.txt	
+	
+	echo. >>iphonewikikeys.txt
+	
 	echo  ^| BatteryFullIV       = %iv14%>>iphonewikikeys.txt
 	echo  ^| BatteryFullKey      = %key14%>>iphonewikikeys.txt
-echo. >>iphonewikikeys.txt	
+	
+	echo. >>iphonewikikeys.txt
+	
 	echo  ^| BatteryLow0IV       = %iv8%>>iphonewikikeys.txt
 	echo  ^| BatteryLow0Key      = %key8%>>iphonewikikeys.txt
-echo. >>iphonewikikeys.txt
+	
+	echo. >>iphonewikikeys.txt
+	
 	echo  ^| BatteryLow1IV       = %iv9%>>iphonewikikeys.txt
 	echo  ^| BatteryLow1Key      = %key9%>>iphonewikikeys.txt
-echo. >>iphonewikikeys.txt
+	
+	echo. >>iphonewikikeys.txt
+	
 	echo  ^| DeviceTreeIV        = %iv5%>>iphonewikikeys.txt
 	echo  ^| DeviceTreeKey       = %key5%>>iphonewikikeys.txt
-echo. >>iphonewikikeys.txt	
+	
+	echo. >>iphonewikikeys.txt
+	
 	echo  ^| GlyphChargingIV     = %iv10%>>iphonewikikeys.txt
-	echo  ^| GlyphChargingKey    = %key10%>>iphonewikikeys.txt	
-echo. >>iphonewikikeys.txt	
+	echo  ^| GlyphChargingKey    = %key10%>>iphonewikikeys.txt
+	
+	echo. >>iphonewikikeys.txt
+	
 	echo  ^| GlyphPluginIV       = %iv11%>>iphonewikikeys.txt
 	echo  ^| GlyphPluginKey      = %key11%>>iphonewikikeys.txt
-echo. >>iphonewikikeys.txt	
+	
+	echo. >>iphonewikikeys.txt
+	
 	echo  ^| iBECIV              = %iv16%>>iphonewikikeys.txt
 	echo  ^| iBECKey             = %key16%>>iphonewikikeys.txt
-echo. >>iphonewikikeys.txt	
+	
+	echo. >>iphonewikikeys.txt
+	
 	echo  ^| iBootIV             = %iv4%>>iphonewikikeys.txt
 	echo  ^| iBootKey            = %key4%>>iphonewikikeys.txt
-echo. >>iphonewikikeys.txt
+	
+	echo. >>iphonewikikeys.txt
+	
 	echo  ^| iBSSIV              = %iv15%>>iphonewikikeys.txt
-	echo  ^| iBSSKey             = %key15%>>iphonewikikeys.txt	
-echo. >>iphonewikikeys.txt
+	echo  ^| iBSSKey             = %key15%>>iphonewikikeys.txt
+	
+	echo. >>iphonewikikeys.txt
+	
 	echo  ^| KernelcacheIV       = %iv17%>>iphonewikikeys.txt
 	echo  ^| KernelcacheKey      = %key17%>>iphonewikikeys.txt
-echo. >>iphonewikikeys.txt	
+	
+	echo. >>iphonewikikeys.txt
+	
 	echo  ^| LLBIV               = %iv3%>>iphonewikikeys.txt
 	echo  ^| LLBKey              = %key3%>>iphonewikikeys.txt
-echo. >>iphonewikikeys.txt
+	
+	echo. >>iphonewikikeys.txt
+	
 	echo  ^| RecoveryModeIV      = %iv7%>>iphonewikikeys.txt
 	echo  ^| RecoveryModeKey     = %key7%>>iphonewikikeys.txt
-
+	
 echo }}>>iphonewikikeys.txt
 
 if not exist "%bundledir%\%url_parsing_device%" mkdir "%bundledir%\%url_parsing_device%"
@@ -1437,7 +1466,6 @@ FOR /F "tokens=2 delims=:" %%a IN ('find "%string%" ^<%temp%\plistparse\tmp2') D
 echo %data1% >%temp%\plistparse\tmp3
 
 set thedata1=
-
 set data=
 
 %tools%\binmay.exe -i %temp%\plistparse\tmp3 -o %temp%\plistparse\tmp4 -s 20 20 20 2>NUL
@@ -1464,6 +1492,7 @@ echo.
 goto eof
 
 :tolowercase
+
 :: thanks to http://www.robvanderwoude.com/battech_convertcase.php
 set %~1=!%1:A=a!
 set %~1=!%1:B=b!
@@ -1493,6 +1522,16 @@ set %~1=!%1:Y=y!
 set %~1=!%1:Z=z!
 
 goto eof
+
+
+:addtovar
+if [%buildids%]==[] (
+	set buildids=%1
+) else (
+	set buildids=%buildids%, %1
+)
+goto eof
+
 
 
 :toolcheck
