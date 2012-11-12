@@ -26,6 +26,7 @@ if not exist %logdir% mkdir %logdir% >NUL
 
 if "%uuid%"=="" (
 	set uuid=iKeyHelper~git
+	set version=%uuid%
 )
 
 call :log #############################################################################
