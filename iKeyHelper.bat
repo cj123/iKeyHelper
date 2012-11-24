@@ -224,7 +224,14 @@ if errorlevel 1 (
 
 <nul set /p "= - Multiple BuildIDs Found: "
 %tools%\curl -A "iKeyHelper - %uuid% - %version%" --silent http://api.ios.icj.me/v2/%dldevice%/%dlfw%/buildid>choices.txt
+
+:: clean up the text file
 ssr 0 """ "" choices.txt
+ssr 0 "," "" choices.txt
+ssr 0 "{" "" choices.txt
+ssr 0 "}" "" choices.txt
+ssr 0 "[" "" choices.txt
+ssr 0 "]" "" choices.txt
 
 for %%a in ("choices.txt") do (
 	for /f "tokens=2 delims=:" %%B in ('find "buildid" ^< %%a') do (
@@ -1526,7 +1533,7 @@ goto eof
 
 
 :addtovar
-if [%buildids%]==[] (
+if "%buildids%"=="" (
 	set buildids=%1
 ) else (
 	set buildids=%buildids%, %1
